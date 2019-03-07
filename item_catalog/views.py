@@ -5,7 +5,9 @@ from flask import Flask
 
 app = Flask(__name__)
 
-
+@app.route('/')
+def landingPage():
+    return 'Hello, World!'
 
 
 def main():
