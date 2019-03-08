@@ -56,13 +56,14 @@ def showCategory(categoryid):
 def newCategory():
     """Return page to add a NEW CATEGORY."""
     categories = session.query(Category).all()
+    categoryid = None
     if request.method == 'POST':
         new_category = Category(name=request.form['name'])
         session.add(new_category)
         session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('categorynew.html', categories=categories)
+        return render_template('categorynew.html', categories=categories, categoryid=categoryid)
 
 
 @app.route('/category/<int:categoryid>/edit/')
@@ -89,7 +90,11 @@ def deleteCategory(categoryid):
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
 def showItem(categoryid, itemid):
     """Return page with description of specific item."""
-    return render_template('index.html')
+    categories = session.query(Category).all()
+    items = session.query(Item).filter_by(category_id=categoryid).all()
+
+    return render_template('itemdisplay.html', categories=categories,
+        categoryid=categoryid, items=items, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/item/new/', methods=['GET','POST'])
