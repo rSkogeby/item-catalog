@@ -27,9 +27,14 @@ class Item(Base):
     description = Column(
         String(800), nullable=False
     )
+    category_id = Column(
+        Integer, ForeignKey('category.id')
+    )
+    category = relationship(Category)
     id = Column(
         Integer, primary_key=True
     )
+
 
 engine = create_engine('sqlite:///itemcatalog.db')
 Base.metadata.create_all(engine)
