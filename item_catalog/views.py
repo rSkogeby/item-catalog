@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 """Backend of Item Catalog app."""
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from item_catalog import dummydatabase
+from item_catalog.models import Base, Category, Item
 
 app = Flask(__name__)
+
+engine = create_engine('sqlite:///itemcatalog.db',
+                       connect_args={'check_same_thread': False})
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
 
 @app.route('/')
@@ -18,10 +27,7 @@ def index():
     - a categories menu that displays all available categories.
     - a column with the latest items added.
     """
-    category1 = dummydatabase.Category('Category one', 1)
-    category2 = dummydatabase.Category('Category two', 2)
-    category3 = dummydatabase.Category('Category three', 3)
-    categories = [category1, category2, category3]
+    categories = session.query(Category).all()
     return render_template('landingpage.html', categories=categories)
 
 
@@ -47,10 +53,14 @@ def showCategory(categoryid):
     return render_template('landingpage.html', categories=categories)
 
 
-@app.route('/category/new/')
+@app.route('/category/new/', methods=['GET','POST'])
 def newCategory():
     """Return page to add a NEW CATEGORY."""
-    return render_template('index.html')
+    if request.method == 'POST':
+        pass
+        return redirect(url_for('index'))
+    elif request.method == 'GET':
+        return render_template('index.html')
 
 
 @app.route('/category/<int:categoryid>/edit/')
@@ -62,7 +72,11 @@ def editCategory(categoryid):
 @app.route('/category/<int:categoryid>/delete/')
 def deleteCategory(categoryid):
     """Return page to add a DELETE CATEGORY."""
-    return render_template('index.html')
+    category1 = dummydatabase.Category('Category one', 1)
+    category2 = dummydatabase.Category('Category two', 2)
+    category3 = dummydatabase.Category('Category three', 3)
+    categories = [category1, category2, category3]
+    return render_template('categorydelete.html', category=categories[0])
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
