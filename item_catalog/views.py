@@ -66,12 +66,19 @@ def newCategory():
         return render_template('categorynew.html', categories=categories, categoryid=categoryid)
 
 
-@app.route('/category/<int:categoryid>/edit/')
+@app.route('/category/<int:categoryid>/edit/', methods=['GET', 'POST'])
 def editCategory(categoryid):
     """Return page to EDIT a CATEGORY."""
     categories = session.query(Category).all()
-    return render_template('categoryedit.html', categories=categories, categoryid=categoryid)
-
+    category = session.query(Category).filter_by(id=categoryid).one()
+    if request.method == 'POST':
+        if request.form.get('name') != '':
+            category.name = request.form.get('name')
+            session.add(category)
+            session.commit()
+        return redirect(url_for('showCategory', categoryid=categoryid))
+    if request.method == 'GET':
+        return render_template('categoryedit.html', categories=categories, categoryid=categoryid, category=category)
 
 
 @app.route('/category/<int:categoryid>/delete/', methods=['GET', 'POST'])
@@ -111,7 +118,6 @@ def newItem(categoryid):
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
         return render_template('itemnew.html', categories=categories, categoryid=categoryid)
-
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/edit/')
