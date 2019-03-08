@@ -12,6 +12,15 @@
         <a href={{url_for('newCategory')}} class="btn btn-default">
             Add new category
         </a>
+        {% if categoryid != None %}
+            <a href={{url_for('editCategory', categoryid=categoryid)}} class="btn btn-default">
+                Edit category
+            </a>
+            <a href={{url_for('deleteCategory', categoryid=categoryid)}} class="btn btn-default">
+                Delete category
+            </a>
+        {% endif %}
+
     </div>
     </div>
 </div>

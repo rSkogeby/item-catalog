@@ -28,7 +28,8 @@ def index():
     - a column with the latest items added.
     """
     categories = session.query(Category).all()
-    return render_template('landingpage.html', categories=categories)
+    categoryid = None
+    return render_template('landingpage.html', categories=categories, categoryid=categoryid)
 
 
 @app.route('/login/')
@@ -72,11 +73,17 @@ def editCategory(categoryid):
 
 
 
-@app.route('/category/<int:categoryid>/delete/')
+@app.route('/category/<int:categoryid>/delete/', methods=['GET', 'POST'])
 def deleteCategory(categoryid):
     """Return page to DELETE a CATEGORY."""
     categories = session.query(Category).all()
-    return render_template('categorydelete.html', category=categories, categoryid=categoryid)
+    category = session.query(Category).filter_by(id=categoryid).one()
+    if request.method == 'POST':
+        session.delete(category)
+        session.commit()
+        return redirect(url_for('index'))
+    elif request.method == 'GET':
+        return render_template('categorydelete.html', categories=categories, categoryid=categoryid, category=category)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
