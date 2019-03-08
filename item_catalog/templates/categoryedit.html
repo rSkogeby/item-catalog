@@ -1,4 +1,11 @@
 {% extends "index.html" %}
 {% block snippet %}
-      {% include "itemslatest.html" %}
+<h1>Edit category</h1>
+<form action='{{url_for('editCategory', categoryid=categoryid)}}' method='POST'>
+      <div class="form-group">
+            <input type='text' name="name" class="form-control" placeholder='{{category.name}}'>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button> 
+      <a href='{{url_for('index')}}'>Cancel</a>
+</form>
 {% endblock %}
