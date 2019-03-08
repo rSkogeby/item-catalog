@@ -3,19 +3,32 @@
 
 from flask import Flask, render_template
 
+from item_catalog import dummydatabase
+
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    """Return index page."""
-    return render_template('index.html')
+    """Return index page.
+    
+    The index page presents:
+    - a header with the title of the website and a button that takes 
+    you to the login page. If you are logged in it logs you out.
+    - a categories menu that displays all available categories.
+    - a column with the latest items added.
+    """
+    category1 = dummydatabase.Category('Category one', 1)
+    category2 = dummydatabase.Category('Category two', 2)
+    category3 = dummydatabase.Category('Category three', 3)
+    categories = [category1, category2, category3]
+    return render_template('landingpage.html', categories=categories)
 
 
 @app.route('/login/')
 def login():
     """Return page with login options."""
-    return render_template('index.html')
+    return render_template('landingpage.html')
 
 
 @app.route('/categories/')
@@ -25,13 +38,17 @@ def showCategories():
 
 
 @app.route('/category/<int:categoryid>/')
-def showCategoryItems(categoryid):
+def showCategory(categoryid):
     """Return page with all items in a category."""
-    return render_template('index.html')
+    category1 = dummydatabase.Category('Category one', 1)
+    category2 = dummydatabase.Category('Category two', 2)
+    category3 = dummydatabase.Category('Category three', 3)
+    categories = [category1, category2, category3]
+    return render_template('landingpage.html', categories=categories)
 
 
 @app.route('/category/new/')
-def newCategory(categoryid):
+def newCategory():
     """Return page to add a NEW CATEGORY."""
     return render_template('index.html')
 
