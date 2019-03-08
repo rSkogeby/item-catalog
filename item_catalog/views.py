@@ -57,10 +57,12 @@ def showCategory(categoryid):
 def newCategory():
     """Return page to add a NEW CATEGORY."""
     if request.method == 'POST':
-        pass
+        new_category = Category(name=request.form['name'])
+        session.add(new_category)
+        session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('index.html')
+        return render_template('categorynew.html')
 
 
 @app.route('/category/<int:categoryid>/edit/')
