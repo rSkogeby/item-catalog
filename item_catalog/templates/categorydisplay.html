@@ -1,4 +1,14 @@
 {% extends "index.html" %}
 {% block snippet %}
-      {% include "itemslatest.html" %}
+<div class="col-lg-3">
+      <div class="list-group">
+      {% for item in items %}
+            <a href="{{url_for('showItem', categoryid=item.category_id, itemid=item.id)}}" class="list-group-item active">{{item.name}}</a>
+      {% endfor %}
+      <div class="btn">
+            <a href={{url_for('newItem', categoryid=categoryid)}} class="btn btn-default">
+                  Add new item
+            </a>
+      </div>
+</div>
 {% endblock %}

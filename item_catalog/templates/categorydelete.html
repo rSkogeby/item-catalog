@@ -1,4 +1,15 @@
 {% extends "index.html" %}
 {% block snippet %}
-      {% include "itemslatest.html" %}
+<h1>New category</h1>
+
+<form action='{{url_for('deleteCategory')}}' method='POST'>
+<div class="form-group">
+
+  <label for="deleteprompt">Are you sure you want to delete {{category.name}}?</label>
+  <input type='submit' id="deleteprompt" aria-describedby="deleteHelp" value='Delete'>
+  <small id="deleteHelp" class="form-text text-muted">Deleted categories cannot be recovered.</small>
+</div>
+  <a href='{{url_for('index')}}'>Cancel</a>
+</form>
+
 {% endblock %}

@@ -46,51 +46,60 @@ def showCategories():
 @app.route('/category/<int:categoryid>/')
 def showCategory(categoryid):
     """Return page with all items in a category."""
-    category1 = dummydatabase.Category('Category one', 1)
-    category2 = dummydatabase.Category('Category two', 2)
-    category3 = dummydatabase.Category('Category three', 3)
-    categories = [category1, category2, category3]
-    return render_template('landingpage.html', categories=categories)
+    categories = session.query(Category).all()
+    items = session.query(Item).filter_by(category_id=categoryid).all()
+    return render_template('categorydisplay.html', categories=categories, categoryid=categoryid, items=items)
 
 
 @app.route('/category/new/', methods=['GET','POST'])
 def newCategory():
     """Return page to add a NEW CATEGORY."""
+    categories = session.query(Category).all()
     if request.method == 'POST':
         new_category = Category(name=request.form['name'])
         session.add(new_category)
         session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('categorynew.html')
+        return render_template('categorynew.html', categories=categories)
 
 
 @app.route('/category/<int:categoryid>/edit/')
 def editCategory(categoryid):
-    """Return page to add a EDIT CATEGORY."""
-    return render_template('index.html')
+    """Return page to EDIT a CATEGORY."""
+    categories = session.query(Category).all()
+    return render_template('categoryedit.html', categories=categories, categoryid=categoryid)
+
 
 
 @app.route('/category/<int:categoryid>/delete/')
 def deleteCategory(categoryid):
-    """Return page to add a DELETE CATEGORY."""
-    category1 = dummydatabase.Category('Category one', 1)
-    category2 = dummydatabase.Category('Category two', 2)
-    category3 = dummydatabase.Category('Category three', 3)
-    categories = [category1, category2, category3]
-    return render_template('categorydelete.html', category=categories[0])
+    """Return page to DELETE a CATEGORY."""
+    categories = session.query(Category).all()
+    return render_template('categorydelete.html', category=categories, categoryid=categoryid)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
-def showItems(categoryid, itemid):
+def showItem(categoryid, itemid):
     """Return page with description of specific item."""
     return render_template('index.html')
 
 
-@app.route('/category/<int:categoryid>/item/new/')
+@app.route('/category/<int:categoryid>/item/new/', methods=['GET','POST'])
 def newItem(categoryid):
     """Return page to add a new item to the category."""
-    return render_template('index.html')
+    categories = session.query(Category).all()
+    if request.method == 'POST':
+        new_item = Item(name=request.form['name'], 
+            description=request.form['description'],
+            category_id=categoryid,
+            )
+        session.add(new_item)
+        session.commit()
+        return redirect(url_for('showCategory', categoryid=categoryid))
+    elif request.method == 'GET':
+        return render_template('itemnew.html', categories=categories, categoryid=categoryid)
+
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/edit/')
