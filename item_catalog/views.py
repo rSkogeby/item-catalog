@@ -31,19 +31,19 @@ def showCategoryItems(categoryid):
 
 
 @app.route('/category/new/')
-def showItems(categoryid):
+def newCategory(categoryid):
     """Return page to add a NEW CATEGORY."""
     return render_template('index.html')
 
 
 @app.route('/category/<int:categoryid>/edit/')
-def showItems(categoryid):
+def editCategory(categoryid):
     """Return page to add a EDIT CATEGORY."""
     return render_template('index.html')
 
 
 @app.route('/category/<int:categoryid>/delete/')
-def showItems(categoryid):
+def deleteCategory(categoryid):
     """Return page to add a DELETE CATEGORY."""
     return render_template('index.html')
 
@@ -55,20 +55,32 @@ def showItems(categoryid, itemid):
 
 
 @app.route('/category/<int:categoryid>/item/new/')
-def showItems(categoryid):
+def newItem(categoryid):
     """Return page to add a new item to the category."""
     return render_template('index.html')
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/edit/')
-def showItems(categoryid, itemid):
+def editItem(categoryid, itemid):
     """Return page to EDIT specific ITEM."""
     return render_template('index.html')
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/delete/')
-def showItems(categoryid, itemid):
+def deleteItem(categoryid, itemid):
     """Return page to DELETE specific ITEM."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/JSON/')
+def categoryAPIEndpoint(categoryid):
+    """Return page to display JSON formatted information of category."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/item/<int:itemid>/JSON/')
+def itemAPIEndpoint(categoryid, itemid):
+    """Return page to display JSON formatted information of item."""
     return render_template('index.html')
 
 
