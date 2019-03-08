@@ -30,9 +30,45 @@ def showCategoryItems(categoryid):
     return render_template('index.html')
 
 
+@app.route('/category/new/')
+def showItems(categoryid):
+    """Return page to add a NEW CATEGORY."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/edit/')
+def showItems(categoryid):
+    """Return page to add a EDIT CATEGORY."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/delete/')
+def showItems(categoryid):
+    """Return page to add a DELETE CATEGORY."""
+    return render_template('index.html')
+
+
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
 def showItems(categoryid, itemid):
     """Return page with description of specific item."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/item/new/')
+def showItems(categoryid):
+    """Return page to add a new item to the category."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/item/<int:itemid>/edit/')
+def showItems(categoryid, itemid):
+    """Return page to EDIT specific ITEM."""
+    return render_template('index.html')
+
+
+@app.route('/category/<int:categoryid>/item/<int:itemid>/delete/')
+def showItems(categoryid, itemid):
+    """Return page to DELETE specific ITEM."""
     return render_template('index.html')
 
 
