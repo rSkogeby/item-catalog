@@ -5,7 +5,7 @@
 <form action='{{url_for('newCategory')}}' method='POST'>
       <div class="form-group">
             <label for="newprompt">Enter the name you would like your category to have.</label>
-            <input type='text' class="form-control" id="newprompt" aria-describedby="newHelp" value='Create'>
+            <input type='text' name="name" class="form-control" id="newprompt" aria-describedby="newHelp" placeholder='Football'>
             <small id="newHelp" class="form-text text-muted">You can change your name later on by editing the category.</small>
       </div>
       <button type="submit" class="btn btn-primary">Submit</button> 
