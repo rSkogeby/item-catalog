@@ -29,7 +29,8 @@ def index():
     """
     categories = session.query(Category).all()
     categoryid = None
-    return render_template('landingpage.html', categories=categories, categoryid=categoryid)
+    itemid = None
+    return render_template('landingpage.html', categories=categories, categoryid=categoryid, itemid=itemid)
 
 
 @app.route('/login/')
@@ -48,14 +49,16 @@ def showCategories():
 def showCategory(categoryid):
     """Return page with all items in a category."""
     categories = session.query(Category).all()
+    itemid = None
     items = session.query(Item).filter_by(category_id=categoryid).all()
-    return render_template('categorydisplay.html', categories=categories, categoryid=categoryid, items=items)
+    return render_template('categorydisplay.html', categories=categories, categoryid=categoryid, items=items, itemid=itemid)
 
 
 @app.route('/category/new/', methods=['GET','POST'])
 def newCategory():
     """Return page to add a NEW CATEGORY."""
     categories = session.query(Category).all()
+    itemid = None
     categoryid = None
     if request.method == 'POST':
         new_category = Category(name=request.form['name'])
@@ -63,13 +66,14 @@ def newCategory():
         session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('categorynew.html', categories=categories, categoryid=categoryid)
+        return render_template('categorynew.html', categories=categories, categoryid=categoryid, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/edit/', methods=['GET', 'POST'])
 def editCategory(categoryid):
     """Return page to EDIT a CATEGORY."""
     categories = session.query(Category).all()
+    itemid = None
     category = session.query(Category).filter_by(id=categoryid).one()
     if request.method == 'POST':
         if request.form.get('name') != '':
@@ -78,20 +82,21 @@ def editCategory(categoryid):
             session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     if request.method == 'GET':
-        return render_template('categoryedit.html', categories=categories, categoryid=categoryid, category=category)
+        return render_template('categoryedit.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/delete/', methods=['GET', 'POST'])
 def deleteCategory(categoryid):
     """Return page to DELETE a CATEGORY."""
     categories = session.query(Category).all()
+    itemid = None
     category = session.query(Category).filter_by(id=categoryid).one()
     if request.method == 'POST':
         session.delete(category)
         session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('categorydelete.html', categories=categories, categoryid=categoryid, category=category)
+        return render_template('categorydelete.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
@@ -108,6 +113,7 @@ def showItem(categoryid, itemid):
 def newItem(categoryid):
     """Return page to add a new item to the category."""
     categories = session.query(Category).all()
+    itemid = None
     if request.method == 'POST':
         new_item = Item(name=request.form['name'], 
             description=request.form['description'],
@@ -117,19 +123,23 @@ def newItem(categoryid):
         session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
-        return render_template('itemnew.html', categories=categories, categoryid=categoryid)
+        return render_template('itemnew.html', categories=categories, categoryid=categoryid, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/edit/')
 def editItem(categoryid, itemid):
     """Return page to EDIT specific ITEM."""
-    return render_template('index.html')
+    categories = session.query(Category).all()
+    return render_template('itemedit.html', categories=categories, categoryid=categoryid, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/delete/')
 def deleteItem(categoryid, itemid):
-    """Return page to DELETE specific ITEM."""
-    return render_template('index.html')
+    """Return page to DELETE specific ITEM."""      
+    categories = session.query(Category).all()
+    return render_template('itemdelete.html', categories=categories, categoryid=categoryid, itemid=itemid)
+
+
 
 
 @app.route('/category/<int:categoryid>/JSON/')
