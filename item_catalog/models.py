@@ -5,7 +5,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, TIMESTAMP, func, Dat
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
-
+from passlib.apps import custom_app_context as pwd_context
 
 class Mixin(object):
     
@@ -23,9 +23,15 @@ Base = declarative_base(cls=Mixin)
 class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    username = Column(String(32), index=True)
+    username = Column(String(80), index=True)
+    picture = Column(String(160), nullable = True)
     password_hash = Column(String(64))
+    
+    def hash_password(self, password):
+        self.password_hash = pwd_context.encrypt(password)
 
+    def verify_password(self, password):
+        return pwd_context.verify(password, self.password_hash)
 
 class Category(Base):
     __tablename__ = 'category'
