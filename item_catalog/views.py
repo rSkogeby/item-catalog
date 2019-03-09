@@ -103,9 +103,9 @@ def showItem(categoryid, itemid):
     """Return page with description of specific item."""
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_id=categoryid).all()
-
+    item = session.query(Item).filter_by(category_id=categoryid, id=itemid).one()
     return render_template('itemdisplay.html', categories=categories,
-        categoryid=categoryid, items=items, itemid=itemid)
+        categoryid=categoryid, items=items, item=item, itemid=itemid)
 
 
 @app.route('/category/<int:categoryid>/item/new/', methods=['GET','POST'])
