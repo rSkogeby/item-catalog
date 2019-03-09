@@ -113,6 +113,7 @@ def showItem(categoryid, itemid):
 def newItem(categoryid):
     """Return page to add a new item to the category."""
     categories = session.query(Category).all()
+    items = session.query(Item).filter_by(category_id=categoryid).all()
     itemid = None
     if request.method == 'POST':
         new_item = Item(name=request.form['name'], 
@@ -123,23 +124,33 @@ def newItem(categoryid):
         session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
-        return render_template('itemnew.html', categories=categories, categoryid=categoryid, itemid=itemid)
+        return render_template('itemnew.html', categories=categories, categoryid=categoryid, itemid=itemid, items=items)
 
 
-@app.route('/category/<int:categoryid>/item/<int:itemid>/edit/')
+@app.route('/category/<int:categoryid>/item/<int:itemid>/edit/', methods=['GET', 'POST'])
 def editItem(categoryid, itemid):
     """Return page to EDIT specific ITEM."""
     categories = session.query(Category).all()
-    return render_template('itemedit.html', categories=categories, categoryid=categoryid, itemid=itemid)
+    items = session.query(Item).filter_by(category_id=categoryid).all()
+    category = session.query(Category).filter_by(id=categoryid).one()
+    item = session.query(Item).filter_by(id=itemid).one()
+    if request.method == 'POST':
+        return redirect(url_for('showCategory', categoryid=categoryid))
+    elif request.method == 'GET':
+        return render_template('itemedit.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid, items=items, item=item)
 
 
-@app.route('/category/<int:categoryid>/item/<int:itemid>/delete/')
+@app.route('/category/<int:categoryid>/item/<int:itemid>/delete/', methods=['GET', 'POST'])
 def deleteItem(categoryid, itemid):
-    """Return page to DELETE specific ITEM."""      
+    """Return page to DELETE specific ITEM."""     
     categories = session.query(Category).all()
-    return render_template('itemdelete.html', categories=categories, categoryid=categoryid, itemid=itemid)
-
-
+    items = session.query(Item).filter_by(category_id=categoryid).all()
+    category = session.query(Category).filter_by(id=categoryid).one()
+    item = session.query(Item).filter_by(id=itemid).one()
+    if request.method == 'POST':
+        return redirect(url_for('showCategory', categoryid=categoryid))
+    elif request.method == 'GET':
+        return render_template('itemdelete.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid, items=items, item=item)
 
 
 @app.route('/category/<int:categoryid>/JSON/')
