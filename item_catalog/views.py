@@ -172,6 +172,21 @@ def itemAPIEndpoint(categoryid):
     return jsonify(Items=[i.serialize for i in items])
 
 
+@app.route('/catalog/JSON/')
+def catalogAPIEndpoint():
+    """Return page to display JSON formatted information of whole catalog."""    
+    categories = session.query(Category).all()
+    catalog = {}
+    for category in categories:
+        cats = category.serialize
+        items = session.query(Item).filter_by(category_id=category.id).all()
+        if items != None:
+            iser = [i.serialize for i in items]
+            cats['Item'] = iser
+        catalog[category.id] = cats
+    return jsonify(Categories=catalog)
+
+
 def main():
     """Serve up a webpage on localhost."""
     app.secret_key = 'key'
