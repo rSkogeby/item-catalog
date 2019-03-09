@@ -2,7 +2,7 @@
 """Backend of Item Catalog app."""
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
 from item_catalog.models import Base, Category, Item
@@ -29,7 +29,8 @@ def index():
     categories = session.query(Category).all()
     categoryid = None
     itemid = None
-    return render_template('landingpage.html', categories=categories, categoryid=categoryid, itemid=itemid)
+    latest_items = session.query(Item).order_by(desc(Item.creation_date)).limit(5).all()
+    return render_template('landingpage.html', categories=categories, categoryid=categoryid, itemid=itemid, latest_items=latest_items)
 
 
 @app.route('/login/')
