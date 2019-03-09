@@ -36,7 +36,7 @@ def index():
 @app.route('/login/')
 def login():
     """Return page with login options."""
-    return render_template('landingpage.html')
+    return render_template('login.html')
 
 
 @app.route('/categories/')
