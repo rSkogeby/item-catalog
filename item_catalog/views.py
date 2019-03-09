@@ -54,7 +54,7 @@ def index():
     categoryid = None
     itemid = None
     latest_items = session.query(Item).order_by(desc(Item.creation_date)).limit(5).all()
-    return render_template('landingpage.html', categories=categories, categoryid=categoryid, itemid=itemid, latest_items=latest_items)
+    return render_template('landingpage.html', categories=categories, categoryid=categoryid, itemid=itemid, latest_items=latest_items, login_session=login_session)
 
 
 @app.route('/login/')
@@ -64,17 +64,20 @@ def login():
 
 @app.route('/login/google/')
 def gconnect():
-    return google.authorize(callback=url_for('authorized', _external=True))
+    """Login using Google."""
+    return google.authorize(callback=url_for('gauthorized', _external=True))
 
 
 @app.route('/logout/')
-def logout():
+def glogout():
+    """Logout from session."""
     login_session.pop('google_token', None)
     return redirect(url_for('index'))
 
 
 @app.route('/login/authorized')
-def authorized():
+def gauthorized():
+    """Callback function for Google login."""
     resp = google.authorized_response()
     if resp is None:
         return 'Access denied: reason={} error={}'.format(
