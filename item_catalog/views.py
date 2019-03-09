@@ -135,6 +135,12 @@ def editItem(categoryid, itemid):
     category = session.query(Category).filter_by(id=categoryid).one()
     item = session.query(Item).filter_by(id=itemid).one()
     if request.method == 'POST':
+        if request.form.get('name') != '':
+            item.name = request.form.get('name')
+        if request.form.get('description') != '':
+            item.description = request.form.get('description')
+        session.add(item)
+        session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
         return render_template('itemedit.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid, items=items, item=item)
