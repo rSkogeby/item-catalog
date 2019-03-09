@@ -22,8 +22,9 @@ class Category(Base):
         # Return object data in easily serialisable format
         return {
             'name': self.name,
-            'id': self.id
+            'id': self.id,
         }
+
 
 
 class Item(Base):
@@ -50,7 +51,6 @@ class Item(Base):
             'category_id': self.category_id,
             'id': self.id
         }
-
 
 engine = create_engine('sqlite:///itemcatalog.db')
 Base.metadata.create_all(engine)
