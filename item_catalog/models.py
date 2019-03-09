@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """Python Database API."""
 
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, ForeignKey, Integer, String, TIMESTAMP, func, DateTime
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
-Base = declarative_base()
+
+class Mixin(object):
+    
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+   #pid =  Column(Integer, nullable=True)
+    creation_date = Column(DateTime, default=func.now())
+    last_modified = Column(DateTime, onupdate=func.now())
+
+Base = declarative_base(cls=Mixin)
 
 
 class Category(Base):
@@ -22,7 +33,7 @@ class Category(Base):
         # Return object data in easily serialisable format
         return {
             'name': self.name,
-            'id': self.id,
+            'id': self.id
         }
 
 
