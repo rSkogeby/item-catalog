@@ -2,12 +2,36 @@
 """Backend of Item Catalog app."""
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
+from flask_oauthlib.client import OAuth
 
 from item_catalog.models import Base, Category, Item
+from instance.config import getGoogleClientId, getGoogleSecret
+
 
 app = Flask(__name__)
+app.config['GOOGLE_ID'] = getGoogleClientId()
+app.config['GOOGLE_SECRET'] = getGoogleSecret()
+oauth = OAuth(app)
+
+# Login methods
+google = oauth.remote_app(
+    'google',
+    consumer_key=app.config.get('GOOGLE_ID'),
+    consumer_secret=app.config.get('GOOGLE_SECRET'),
+    request_token_params={
+        'scope': 'email'
+    },
+    base_url='https://www.googleapis.com/oauth2/v1/',
+    request_token_url=None,
+    access_token_method='POST',
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+)
+
+
 
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
@@ -37,6 +61,35 @@ def index():
 def login():
     """Return page with login options."""
     return render_template('login.html')
+
+@app.route('/login/google/')
+def gconnect():
+    return google.authorize(callback=url_for('authorized', _external=True))
+
+
+@app.route('/logout/')
+def logout():
+    login_session.pop('google_token', None)
+    return redirect(url_for('index'))
+
+
+@app.route('/login/authorized')
+def authorized():
+    resp = google.authorized_response()
+    if resp is None:
+        return 'Access denied: reason={} error={}'.format(
+            request.args['error_reason'],
+            request.args['error_description']
+        )
+    login_session['google_token'] = (resp['access_token'], '')
+    me = google.get('userinfo')
+    #return jsonify({"data": me.data})
+    return redirect(url_for('index'))
+
+
+@google.tokengetter
+def get_google_oauth_token():
+    return login_session.get('google_token')
 
 
 @app.route('/categories/')
