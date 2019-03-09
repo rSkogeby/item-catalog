@@ -15,10 +15,10 @@
             </a>
             {% if categoryid != None and itemid != None %}
             <a href={{url_for('editItem', categoryid=categoryid, itemid=itemid)}} class="btn btn-default">
-                Edit item
+                  Edit item
             </a>
             <a href={{url_for('deleteItem', categoryid=categoryid, itemid=itemid)}} class="btn btn-default">
-                Delete item
+                  Delete item
             </a>
         {% endif %}
       </div>

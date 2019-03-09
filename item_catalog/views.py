@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Backend of Item Catalog app."""
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from item_catalog import dummydatabase
 from item_catalog.models import Base, Category, Item
 
 app = Flask(__name__)
@@ -159,16 +158,18 @@ def deleteItem(categoryid, itemid):
         return render_template('itemdelete.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid, items=items, item=item)
 
 
-@app.route('/category/<int:categoryid>/JSON/')
-def categoryAPIEndpoint(categoryid):
+@app.route('/category/JSON/')
+def categoryAPIEndpoint():
     """Return page to display JSON formatted information of category."""
-    return render_template('index.html')
+    categories = session.query(Category).all()
+    return jsonify(Categories=[i.serialize for i in categories])
 
 
-@app.route('/category/<int:categoryid>/item/<int:itemid>/JSON/')
-def itemAPIEndpoint(categoryid, itemid):
+@app.route('/category/<int:categoryid>/JSON/')
+def itemAPIEndpoint(categoryid):
     """Return page to display JSON formatted information of item."""
-    return render_template('index.html')
+    items = session.query(Item).filter_by(category_id=categoryid).all()
+    return jsonify(Items=[i.serialize for i in items])
 
 
 def main():
