@@ -5,13 +5,14 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, f
 from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from flask_oauthlib.client import OAuth
 from flask_login import LoginManager
 import random
 import string
 
 from item_catalog.models import Base, Category, Item, User
-from item_catalog.user_info import getUserID, getUserInfo, createUser
+#from item_catalog.user_info import getUserID, getUserInfo, createUser
 
 from instance.config import getGoogleClientId, getGoogleSecret,\
                             getTwitterAPIKey, getTwitterSecret
@@ -58,6 +59,37 @@ engine = create_engine('sqlite:///itemcatalog.db',
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+
+def getUserID(email):
+    """Fetch user ID if in DB, else return None."""
+    try:
+        DBSession = sessionmaker(bind=engine)
+        session = DBSession()
+        user = session.query(User).filter_by(username=email).one()
+        return user.id
+    except:
+        return None
+
+
+def getUserInfo(user_id):
+    """Fetch stored info on user."""
+    DBSession = sessionmaker(bind=engine)
+    session = DBSession()
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+
+def createUser(login_session):
+    """Add new user to DB."""
+    DBSession = sessionmaker(bind=engine)
+    session = DBSession()
+    newUser = User(username=login_session['username'],
+                   picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(username=login_session['username']).one()
+    return user.id
 
 
 @google.tokengetter
@@ -109,16 +141,27 @@ def aboutus():
     return render_template('aboutus.html', login_session=login_session)
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        user = session.query(User).filter_by(id=user_id).one()
+        return user.id
+    except:
+        return None
+
+
 @app.route('/login/')
 def login():
     """Return page with login options."""
     return render_template('login.html', login_session=login_session)
+
 
 @app.route('/login/google/')
 def gconnect():
     """Login using Google."""
     login_session['method'] = 'google'
     return google.authorize(callback=url_for('authorized', _external=True))
+
 
 @app.route('/login/twitter/')
 def tconnect():
@@ -141,15 +184,6 @@ def logout():
     return redirect(request.referrer or url_for('index'))
 
 
-def newUser():
-    all_users = session.query(User).all()
-    new_user = User(username=login_session['username'], picture=login_session['picture'])
-    if new_user.username not in [i.username for i in all_users]:
-        session.add(new_user)
-        session.commit()
-    return
-
-
 @app.route('/login/authorized')
 def authorized(resp=None, next=None):
     """Callback function for Twitter and Google login."""
@@ -163,7 +197,10 @@ def authorized(resp=None, next=None):
         login_session['access_token'] = (resp['access_token'], '')
         login_session['username'] = google.get('userinfo').data.get('email')
         login_session['picture'] = google.get('userinfo').data.get('picture')
-        newUser()
+        user_id = getUserID(login_session['username'])
+        if not user_id:
+            user_id = createUser(login_session)
+        login_session['user_id'] = user_id
         return redirect(url_for('index'))
     elif login_session.get('method') == 'twitter':
         resp = twitter.authorized_response()
@@ -173,6 +210,10 @@ def authorized(resp=None, next=None):
             login_session['twitter_oauth'] = resp
             login_session['access_token'] = (resp['access_token'], '')
             login_session['user_info'] = twitter.get('userinfo')
+            user_id = getUserID(login_session['username'])
+            if not user_id:
+                user_id = createUser(login_session)
+            login_session['user_id'] = user_id
             return redirect(url_for('index'))
 
 
@@ -195,7 +236,8 @@ def newCategory():
     itemid = None
     categoryid = None
     if request.method == 'POST':
-        new_category = Category(name=request.form['name'])
+        new_category = Category(name=request.form['name'],
+            user_id=login_session['user_id'])
         session.add(new_category)
         session.commit()
         return redirect(url_for('index'))
@@ -264,7 +306,8 @@ def newItem(categoryid):
         new_item = Item(name=request.form['name'], 
             description=request.form['description'],
             category_id=categoryid,
-            )
+            user_id=login_session['user_id']
+        )
         session.add(new_item)
         session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
@@ -297,6 +340,11 @@ def editItem(categoryid, itemid):
             login_session=login_session)
 
 
+@app.route('/warning/')
+def warning():
+    return render_template('itemwarning.html')
+
+
 @app.route('/category/<int:categoryid>/item/<int:itemid>/delete/', methods=['GET', 'POST'])
 def deleteItem(categoryid, itemid):
     """Return page to DELETE specific ITEM."""     
@@ -304,13 +352,22 @@ def deleteItem(categoryid, itemid):
     items = session.query(Item).filter_by(category_id=categoryid).all()
     category = session.query(Category).filter_by(id=categoryid).one()
     item = session.query(Item).filter_by(id=itemid).one()
-    if request.method == 'POST':
-        return redirect(url_for('showCategory', categoryid=categoryid))
-    elif request.method == 'GET':
-        return render_template('itemdelete.html',
-            categories=categories, categoryid=categoryid, category=category,
-            itemid=itemid, items=items, item=item,
-            login_session=login_session)
+    creator = getUserInfo(item.user_id)
+    if creator == None:
+        return redirect(url_for('warning'))
+    if 'username' in login_session and\
+        creator.id == login_session.get('user_id'):
+        if request.method == 'POST':
+            session.delete(item)
+            session.commit()
+            return redirect(url_for('showCategory', categoryid=categoryid))
+        elif request.method == 'GET':
+            return render_template('itemdelete.html',
+                categories=categories, categoryid=categoryid, category=category,
+                itemid=itemid, items=items, item=item,
+                login_session=login_session)
+    else:
+        return redirect(url_for('warning'))
 
 
 @app.route('/category/JSON/')

@@ -37,6 +37,10 @@ class Category(Base):
     __tablename__ = 'category'
     name = Column(String(80), nullable=False)
     id = Column(Integer, primary_key=True)
+    user_id = Column(
+        Integer, ForeignKey('user.id')
+    )
+    user = relationship(User)
     @property
     def serialize(self):
         # Return object data in easily serialisable format
@@ -54,6 +58,10 @@ class Item(Base):
     category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
     id = Column(Integer, primary_key=True)
+    user_id = Column(
+        Integer, ForeignKey('user.id')
+    )
+    user = relationship(User)
     @property
     def serialize(self):
         # Return object data in easily serialisable format
