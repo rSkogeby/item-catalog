@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
 """Backend of Item Catalog app."""
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, g
 from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from flask_oauthlib.client import OAuth
 from flask_login import LoginManager
-
+import random
+import string
 
 from item_catalog.models import Base, Category, Item
-from instance.config import getGoogleClientId, getGoogleSecret
+from instance.config import getGoogleClientId, getGoogleSecret,\
+                            getTwitterAPIKey, getTwitterSecret
 
 
 app = Flask(__name__)
 app.config['GOOGLE_ID'] = getGoogleClientId()
 app.config['GOOGLE_SECRET'] = getGoogleSecret()
+app.config['TWITTER_KEY'] = getTwitterAPIKey()
+app.config['TWITTER_SECRET'] = getTwitterSecret()
 oauth = OAuth(app)
 
 # Login methods
-google = oauth.remote_app(
-    'google',
+# Google login
+google = oauth.remote_app('google',
     consumer_key=app.config.get('GOOGLE_ID'),
     consumer_secret=app.config.get('GOOGLE_SECRET'),
     request_token_params={
@@ -31,6 +35,17 @@ google = oauth.remote_app(
     access_token_method='POST',
     access_token_url='https://accounts.google.com/o/oauth2/token',
     authorize_url='https://accounts.google.com/o/oauth2/auth',
+)
+
+# Twitter login
+oauthnonce = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+twitter = oauth.remote_app('twitter',
+    consumer_key=app.config.get('TWITTER_KEY'),
+    consumer_secret=app.config.get('TWITTER_SECRET'),
+    base_url='https://api.twitter.com/1.1/',
+    request_token_url='https://api.twitter.com/oauth/request_token',
+    access_token_url='https://api.twitter.com/oauth/access_token',
+    authorize_url='https://api.twitter.com/oauth/authorize'
 )
 
 # Set up login manager
@@ -44,6 +59,27 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+@google.tokengetter
+def get_google_oauth_token():
+    return login_session.get('google_token')
+
+
+@twitter.tokengetter
+def get_twitter_token(token=None):
+    if 'twitter_oauth' in login_session:
+        resp = session['twitter_oauth']
+        return resp['oauth_token'], resp['oauth_token_secret']
+    else:
+        return None
+
+
+@app.before_request
+def before_request():
+    g.user = None
+    if 'twitter_oauth' in login_session:
+        g.user = login_session['twitter_oauth']
+
+
 @app.route('/')
 def index():
     """Return index page.
@@ -54,6 +90,10 @@ def index():
     - a categories menu that displays all available categories.
     - a column with the latest items added.
     """
+    access_token = login_session.get('access_token')
+    if access_token is None:
+        return redirect(url_for('login')) 
+    access_token = access_token[0]
     categories = session.query(Category).all()
     categoryid = None
     itemid = None
@@ -69,34 +109,49 @@ def login():
 @app.route('/login/google/')
 def gconnect():
     """Login using Google."""
-    return google.authorize(callback=url_for('gauthorized', _external=True))
+    login_session['method'] = 'google'
+    return google.authorize(callback=url_for('authorized', _external=True))
+
+@app.route('/login/twitter/')
+def tconnect():
+    """Login using Twitter."""
+    login_session['method'] = 'twitter'
+    callback_url = url_for('authorized', next=request.args.get('next'))
+    return twitter.authorize(callback=callback_url or request.referrer or None)
 
 
 @app.route('/logout/')
-def glogout():
+def logout():
     """Logout from session."""
-    login_session.pop('google_token', None)
-    return redirect(url_for('index'))
+    if login_session.get('method') == 'google':
+        login_session.pop('google_token', None)
+    elif login_session.get('method') == 'twitter':
+        session.pop('screen_name', None)
+    flash('You were signed out')
+    return redirect(request.referrer or url_for('index'))
 
 
 @app.route('/login/authorized')
-def gauthorized():
-    """Callback function for Google login."""
-    resp = google.authorized_response()
-    if resp is None:
-        return 'Access denied: reason={} error={}'.format(
-            request.args['error_reason'],
-            request.args['error_description']
-        )
-    login_session['google_token'] = (resp['access_token'], '')
-    me = google.get('userinfo')
-    #return jsonify({"data": me.data})
-    return redirect(url_for('index'))
-
-
-@google.tokengetter
-def get_google_oauth_token():
-    return login_session.get('google_token')
+def authorized(resp=None, next=None):
+    """Callback function for Twitter and Google login."""
+    if login_session.get('method') == 'google':
+        resp = google.authorized_response()
+        if resp is None:
+            return 'Access denied: reason={} error={}'.format(
+                request.args['error_reason'],
+                request.args['error_description']
+            )
+        login_session['google_token'] = (resp['access_token'], '')
+        me = google.get('userinfo')
+        #return jsonify({"data": me.data})
+        return redirect(url_for('index'))
+    elif login_session.get('method') == 'twitter':
+        resp = twitter.authorized_response()
+        if resp is None:
+            flash('You denied the request to sign in.')
+        else:
+            session['twitter_oauth'] = resp
+            return redirect(url_for('index'))
 
 
 @app.route('/categories/')
