@@ -10,7 +10,7 @@ from flask_login import LoginManager
 import random
 import string
 
-from item_catalog.models import Base, Category, Item
+from item_catalog.models import Base, Category, Item, User
 from item_catalog.user_info import getUserID, getUserInfo, createUser
 
 from instance.config import getGoogleClientId, getGoogleSecret,\
@@ -92,10 +92,9 @@ def index():
     - a categories menu that displays all available categories.
     - a column with the latest items added.
     """
-    access_token = login_session.get('access_token')
-    if access_token is None:
+    username = login_session.get('username')
+    if username is None:
         return redirect(url_for('login')) 
-    access_token = access_token[0]
     categories = session.query(Category).all()
     categoryid = None
     itemid = None
@@ -133,6 +132,14 @@ def logout():
     return redirect(request.referrer or url_for('index'))
 
 
+def newUser():
+    all_users = session.query(User).all()
+    new_user = User(username=login_session['username'], picture=login_session['picture'])
+    if new_user.username not in [i.username for i in all_users]:
+        session.add(new_user)
+        session.commit()
+    return
+
 @app.route('/login/authorized')
 def authorized(resp=None, next=None):
     """Callback function for Twitter and Google login."""
@@ -144,8 +151,9 @@ def authorized(resp=None, next=None):
                 request.args['error_description']
             )
         login_session['access_token'] = (resp['access_token'], '')
-        me = google.get('userinfo')
-        #return jsonify({"data": me.data})
+        login_session['username'] = google.get('userinfo').data.get('email')
+        login_session['picture'] = google.get('userinfo').data.get('picture')
+        newUser()
         return redirect(url_for('index'))
     elif login_session.get('method') == 'twitter':
         resp = twitter.authorized_response()
@@ -154,6 +162,7 @@ def authorized(resp=None, next=None):
         else:
             login_session['twitter_oauth'] = resp
             login_session['access_token'] = (resp['access_token'], '')
+            login_session['user_info'] = twitter.get('userinfo')
             return redirect(url_for('index'))
 
 
