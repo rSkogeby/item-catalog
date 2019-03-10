@@ -1,7 +1,16 @@
-#bgcol{
-    padding-top: 56px;
-    background-color: rgba(253, 247, 236, 1);
-    icon-gradient-0:#E56500;
-    icon-gradient-1:#EBC51D;
-    font-color: #342103;
+/* Sticky footer styles
+-------------------------------------------------- */
+
+  body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+  }
+  .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 250px;
+    background-image: linear-gradient(to right, #EBC51D , #E56500);
 }
+  
