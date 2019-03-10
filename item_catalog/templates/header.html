@@ -25,10 +25,14 @@
     {% endif %} 
     </ul>
     <ul class="nav navbar-nav navbar-right">
-    {% if request.path == "/login/" %}
-      <li class="active"><a href="{{url_for('login')}}" class="glyphicon glyphicon-log-in"> Login</a></li>
-    {% else %}
-      <li><a href="{{url_for('login')}}" class="glyphicon glyphicon-log-in"> Login</a></li>
+    {% if 'username' in login_session %}
+      <li><a href="{{url_for('logout')}}" class="glyphicon glyphicon-log-out"> Logout</a></li>
+      {% else %}
+        {% if request.path == "/login/" %}
+          <li class="active"><a href="{{url_for('login')}}" class="glyphicon glyphicon-log-in"> Login</a></li>
+        {% else %}
+          <li><a href="{{url_for('login')}}" class="glyphicon glyphicon-log-in"> Login</a></li>
+        {% endif %}
     {% endif %}
     </ul>
   </div>
