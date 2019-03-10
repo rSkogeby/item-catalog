@@ -1,10 +1,14 @@
 /* Sticky footer styles
 -------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
 
-  body {
-    /* Margin bottom by footer height */
-    margin-bottom: 60px;
-  }
+body > .container {
+  /* Margin bottom by footer height */
+  margin-bottom: 300px;
+}
 .footermenu {
     position: absolute;
     bottom: 50px;
@@ -21,8 +25,10 @@
     height: 50px;
     background-color: #2c2f33;
 }
-.pee {
-    color : #EBC51D;
-    font-family: Arial, Helvetica, sans-serif;
+
+.container .text-muted {
+  margin: 15px 0;
+  color : #EBC51D;
+  font-family: Arial, Helvetica, sans-serif;
 }
   
