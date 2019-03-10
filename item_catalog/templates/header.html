@@ -19,9 +19,9 @@
       <li><a href="{{url_for('index')}}">Home</a></li>
     {% endif %}
     {% if request.path == "/about-us/" %}
-      <li class="active"><a href="#">About Us</a></li>
+      <li class="active"><a href="{{url_for('aboutus')}}">About Us</a></li>
     {% else %}
-      <li><a href="#">About Us</a></li>
+      <li><a href="{{url_for('aboutus')}}">About Us</a></li>
     {% endif %} 
     </ul>
     <ul class="nav navbar-nav navbar-right">

@@ -40,7 +40,6 @@ google = oauth.remote_app('google',
 )
 
 # Twitter login
-oauthnonce = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
 twitter = oauth.remote_app('twitter',
     consumer_key=app.config.get('TWITTER_KEY'),
     consumer_secret=app.config.get('TWITTER_SECRET'),
@@ -92,20 +91,28 @@ def index():
     - a categories menu that displays all available categories.
     - a column with the latest items added.
     """
-    username = login_session.get('username')
-    if username is None:
+    
+    if 'username' not in login_session:
         return redirect(url_for('login')) 
     categories = session.query(Category).all()
     categoryid = None
     itemid = None
     latest_items = session.query(Item).order_by(desc(Item.creation_date)).limit(5).all()
-    return render_template('landingpage.html', categories=categories, categoryid=categoryid, itemid=itemid, latest_items=latest_items, login_session=login_session)
+    return render_template('landingpage.html',
+        categories=categories, categoryid=categoryid,
+        itemid=itemid, latest_items=latest_items,
+        login_session=login_session)
+
+
+@app.route('/about-us/')
+def aboutus():
+    return render_template('aboutus.html', login_session=login_session)
 
 
 @app.route('/login/')
 def login():
     """Return page with login options."""
-    return render_template('login.html')
+    return render_template('login.html', login_session=login_session)
 
 @app.route('/login/google/')
 def gconnect():
@@ -128,6 +135,8 @@ def logout():
         login_session.pop('access_token', None)
     elif login_session.get('method') == 'twitter':
         login_session.pop('screen_name', None)
+    del login_session['username']
+    del login_session['picture']
     flash('You were signed out')
     return redirect(request.referrer or url_for('index'))
 
@@ -139,6 +148,7 @@ def newUser():
         session.add(new_user)
         session.commit()
     return
+
 
 @app.route('/login/authorized')
 def authorized(resp=None, next=None):
@@ -166,19 +176,16 @@ def authorized(resp=None, next=None):
             return redirect(url_for('index'))
 
 
-@app.route('/categories/')
-def showCategories():
-    """Return categories page."""
-    return render_template('index.html')
-
-
 @app.route('/category/<int:categoryid>/')
 def showCategory(categoryid):
     """Return page with all items in a category."""
     categories = session.query(Category).all()
     itemid = None
     items = session.query(Item).filter_by(category_id=categoryid).all()
-    return render_template('categorydisplay.html', categories=categories, categoryid=categoryid, items=items, itemid=itemid)
+    return render_template('categorydisplay.html',
+        categories=categories, categoryid=categoryid,
+        items=items, itemid=itemid,
+        login_session=login_session)
 
 
 @app.route('/category/new/', methods=['GET','POST'])
@@ -193,7 +200,10 @@ def newCategory():
         session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('categorynew.html', categories=categories, categoryid=categoryid, itemid=itemid)
+        return render_template('categorynew.html',
+            categories=categories, categoryid=categoryid,
+            itemid=itemid,
+            login_session=login_session)
 
 
 @app.route('/category/<int:categoryid>/edit/', methods=['GET', 'POST'])
@@ -209,7 +219,10 @@ def editCategory(categoryid):
             session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     if request.method == 'GET':
-        return render_template('categoryedit.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid)
+        return render_template('categoryedit.html',
+            categories=categories, categoryid=categoryid, category=category,
+            itemid=itemid,
+            login_session=login_session)
 
 
 @app.route('/category/<int:categoryid>/delete/', methods=['GET', 'POST'])
@@ -223,7 +236,10 @@ def deleteCategory(categoryid):
         session.commit()
         return redirect(url_for('index'))
     elif request.method == 'GET':
-        return render_template('categorydelete.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid)
+        return render_template('categorydelete.html',
+        categories=categories, categoryid=categoryid, category=category,
+        itemid=itemid,
+        login_session=login_session)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
@@ -233,7 +249,9 @@ def showItem(categoryid, itemid):
     items = session.query(Item).filter_by(category_id=categoryid).all()
     item = session.query(Item).filter_by(category_id=categoryid, id=itemid).one()
     return render_template('itemdisplay.html', categories=categories,
-        categoryid=categoryid, items=items, item=item, itemid=itemid)
+        categoryid=categoryid,
+        items=items, item=item, itemid=itemid,
+        login_session=login_session)
 
 
 @app.route('/category/<int:categoryid>/item/new/', methods=['GET','POST'])
@@ -251,7 +269,10 @@ def newItem(categoryid):
         session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
-        return render_template('itemnew.html', categories=categories, categoryid=categoryid, itemid=itemid, items=items)
+        return render_template('itemnew.html',
+            categories=categories, categoryid=categoryid,
+            itemid=itemid, items=items,
+            login_session=login_session)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/edit/', methods=['GET', 'POST'])
@@ -270,7 +291,10 @@ def editItem(categoryid, itemid):
         session.commit()
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
-        return render_template('itemedit.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid, items=items, item=item)
+        return render_template('itemedit.html',
+            categories=categories, categoryid=categoryid, category=category,
+            itemid=itemid, items=items, item=item,
+            login_session=login_session)
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/delete/', methods=['GET', 'POST'])
@@ -283,7 +307,10 @@ def deleteItem(categoryid, itemid):
     if request.method == 'POST':
         return redirect(url_for('showCategory', categoryid=categoryid))
     elif request.method == 'GET':
-        return render_template('itemdelete.html', categories=categories, categoryid=categoryid, category=category, itemid=itemid, items=items, item=item)
+        return render_template('itemdelete.html',
+            categories=categories, categoryid=categoryid, category=category,
+            itemid=itemid, items=items, item=item,
+            login_session=login_session)
 
 
 @app.route('/category/JSON/')
