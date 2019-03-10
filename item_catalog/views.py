@@ -11,6 +11,8 @@ import random
 import string
 
 from item_catalog.models import Base, Category, Item
+from item_catalog.user_info import getUserID, getUserInfo, createUser
+
 from instance.config import getGoogleClientId, getGoogleSecret,\
                             getTwitterAPIKey, getTwitterSecret
 
@@ -124,9 +126,9 @@ def tconnect():
 def logout():
     """Logout from session."""
     if login_session.get('method') == 'google':
-        login_session.pop('google_token', None)
+        login_session.pop('access_token', None)
     elif login_session.get('method') == 'twitter':
-        session.pop('screen_name', None)
+        login_session.pop('screen_name', None)
     flash('You were signed out')
     return redirect(request.referrer or url_for('index'))
 
@@ -141,7 +143,7 @@ def authorized(resp=None, next=None):
                 request.args['error_reason'],
                 request.args['error_description']
             )
-        login_session['google_token'] = (resp['access_token'], '')
+        login_session['access_token'] = (resp['access_token'], '')
         me = google.get('userinfo')
         #return jsonify({"data": me.data})
         return redirect(url_for('index'))
@@ -150,7 +152,8 @@ def authorized(resp=None, next=None):
         if resp is None:
             flash('You denied the request to sign in.')
         else:
-            session['twitter_oauth'] = resp
+            login_session['twitter_oauth'] = resp
+            login_session['access_token'] = (resp['access_token'], '')
             return redirect(url_for('index'))
 
 
