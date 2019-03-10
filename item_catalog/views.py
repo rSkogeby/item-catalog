@@ -6,6 +6,8 @@ from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from flask_oauthlib.client import OAuth
+from flask_login import LoginManager
+
 
 from item_catalog.models import Base, Category, Item
 from instance.config import getGoogleClientId, getGoogleSecret
@@ -31,6 +33,8 @@ google = oauth.remote_app(
     authorize_url='https://accounts.google.com/o/oauth2/auth',
 )
 
+# Set up login manager
+login_manager = LoginManager(app)
 
 
 engine = create_engine('sqlite:///itemcatalog.db',

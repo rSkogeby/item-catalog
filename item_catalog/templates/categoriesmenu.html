@@ -1,6 +1,5 @@
 <div class="col-lg-3">
-<h1 class="my-4">Item Catalog</h1>
-    <div class="list-group">
+<div class="list-group">
     {% for category in categories %}
         {% if categoryid != None and categoryid == category.id %}
         <a href="{{url_for('showCategory', categoryid=category.id)}}" class="list-group-item active">{{category.name}}</a>
@@ -9,19 +8,18 @@
         {% endif %}
     {% endfor %}
     <div class="btn">
-        <a href={{url_for('newCategory')}} class="btn btn-default">
-            Add new category
+        <a href={{url_for('newCategory')}}>
+            <i class="far fa-plus-square"></i>
         </a>
         {% if categoryid != None %}
-            <a href={{url_for('editCategory', categoryid=categoryid)}} class="btn btn-default">
-                Edit category
+            <a href={{url_for('editCategory', categoryid=categoryid)}}>
+                <i class="fas fa-edit"></i>
             </a>
-            <a href={{url_for('deleteCategory', categoryid=categoryid)}} class="btn btn-default">
-                Delete category
+            <a href={{url_for('deleteCategory', categoryid=categoryid)}}>
+                <i class="far fa-trash-alt"></i>
             </a>
         {% endif %}
 
     </div>
-    </div>
 </div>
-<!-- /.col-lg-3 -->
+</div>

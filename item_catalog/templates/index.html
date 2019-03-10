@@ -4,23 +4,24 @@
   <!-- Page Content -->
   <div class="container">
     <div class="row">
-      {% include "categoriesmenu.html" %}
-      <div class="container">
+      <div class="col-lg-3">
+        <h1>Item Catalog</h1>
+      </div>
+      {% if request.path == '/' %}
+      <div class="col-lg-3">
+        <h3>Latest items</h3>
+      </div>
+      {% endif %}
+    </div>
+    <!-- /.row --> 
+    <div class="row">      
+        {% include "categoriesmenu.html" %}
 			  {% block snippet %}
 			  {% endblock %}
-		  </div>
     </div>
-    <!-- /.row -->
+    <!-- /.row --> 
   </div>
   <!-- /.container --> 
-
-  <!-- Footer -->
-  <footer class="py-5 bg-dark">
-    <div class="container">
-      <p class="m-0 text-center text-white">Copyright &copy; Richard Skogeby 2019</p>
-    </div>
-    <!-- /.container -->
-  </footer>
 
   <!-- Bootstrap core JavaScript -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
