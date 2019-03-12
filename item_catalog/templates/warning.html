@@ -1,5 +1,8 @@
-{% extends "categorydisplay.html" %}
-{% block item_description %}
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<div class="col-lg-3">
         <h3>Warning!</h3>
         <p>You don't have the required privileges to perform that action.</p>       
+</div>
 {% endblock %}

@@ -1,14 +1,15 @@
 {% extends "index.html" %}
 {% block snippet %}
+<div class="col-lg-3">
 <h1>New category</h1>
-
-<form action='{{url_for('newCategory')}}' method='POST'>
-      <div class="form-group">
-            <label for="newprompt">Enter the name you would like your category to have.</label>
-            <input type='text' name="name" class="form-control" id="newprompt" aria-describedby="newHelp" placeholder='Football'>
-            <small id="newHelp" class="form-text text-muted">You can change your name later on by editing the category.</small>
-      </div>
-      <button type="submit" class="btn btn-primary">Submit</button> 
-      <a href='{{url_for('index')}}'>Cancel</a>
-</form>
+      <form action='{{url_for('newCategory')}}' method='POST'>
+            <div class="form-group">
+                  <label for="newprompt">Enter the name you would like your category to have.</label>
+                  <input type='text' name="name" class="form-control" id="newprompt" aria-describedby="newHelp" placeholder='Football'>
+                  <small id="newHelp" class="form-text text-muted">You can change your name later on by editing the category.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button> 
+            <a href='{{url_for('index')}}'>Cancel</a>
+      </form>
+</div>
 {% endblock %}

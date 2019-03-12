@@ -1,59 +1,29 @@
 #!/usr/bin/env python3
 """Backend of Item Catalog app."""
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, g
+import random
+import string
+import httplib2
+import requests
+import json
+
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, g, make_response
 from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from flask_oauthlib.client import OAuth
-from flask_login import LoginManager
-import random
-import string
+from flask_login import LoginManager, login_required
+from oauth2client.client import flow_from_clientsecrets
+from OpenSSL import SSL
 
 from item_catalog.models import Base, Category, Item, User
-#from item_catalog.user_info import getUserID, getUserInfo, createUser
-
 from instance.config import getGoogleClientId, getGoogleSecret,\
                             getTwitterAPIKey, getTwitterSecret
 
-
 app = Flask(__name__)
-app.config['GOOGLE_ID'] = getGoogleClientId()
-app.config['GOOGLE_SECRET'] = getGoogleSecret()
-app.config['TWITTER_KEY'] = getTwitterAPIKey()
-app.config['TWITTER_SECRET'] = getTwitterSecret()
-oauth = OAuth(app)
-
-# Login methods
-# Google login
-google = oauth.remote_app('google',
-    consumer_key=app.config.get('GOOGLE_ID'),
-    consumer_secret=app.config.get('GOOGLE_SECRET'),
-    request_token_params={
-        'scope': 'email'
-    },
-    base_url='https://www.googleapis.com/oauth2/v1/',
-    request_token_url=None,
-    access_token_method='POST',
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-)
-
-# Twitter login
-twitter = oauth.remote_app('twitter',
-    consumer_key=app.config.get('TWITTER_KEY'),
-    consumer_secret=app.config.get('TWITTER_SECRET'),
-    base_url='https://api.twitter.com/1.1/',
-    request_token_url='https://api.twitter.com/oauth/request_token',
-    access_token_url='https://api.twitter.com/oauth/access_token',
-    authorize_url='https://api.twitter.com/oauth/authorize'
-)
-
-# Set up login manager
-login_manager = LoginManager(app)
-
-
+client_secrets_file = open('/Users/richard/udacity/fullstack-nanodegree-vm/vagrant/item-catalog/instance/client_secrets.json').read()
+client_secrets = json.loads(client_secrets_file).get('web')
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
@@ -92,27 +62,6 @@ def createUser(login_session):
     return user.id
 
 
-@google.tokengetter
-def get_google_oauth_token():
-    return login_session.get('google_token')
-
-
-@twitter.tokengetter
-def get_twitter_token(token=None):
-    if 'twitter_oauth' in login_session:
-        resp = session['twitter_oauth']
-        return resp['oauth_token'], resp['oauth_token_secret']
-    else:
-        return None
-
-
-@app.before_request
-def before_request():
-    g.user = None
-    if 'twitter_oauth' in login_session:
-        g.user = login_session['twitter_oauth']
-
-
 @app.route('/')
 def index():
     """Return index page.
@@ -124,8 +73,8 @@ def index():
     - a column with the latest items added.
     """
     
-    if 'username' not in login_session:
-        return redirect(url_for('login')) 
+    #if 'username' not in login_session:
+    #    return redirect(url_for('login'))
     categories = session.query(Category).all()
     categoryid = None
     itemid = None
@@ -141,80 +90,77 @@ def aboutus():
     return render_template('aboutus.html', login_session=login_session)
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    try:
-        user = session.query(User).filter_by(id=user_id).one()
-        return user.id
-    except:
-        return None
-
-
 @app.route('/login/')
 def login():
     """Return page with login options."""
+    passthrough_value = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+    login_session['state'] = passthrough_value
     return render_template('login.html', login_session=login_session)
 
 
 @app.route('/login/google/')
 def gconnect():
     """Login using Google."""
-    login_session['method'] = 'google'
-    return google.authorize(callback=url_for('authorized', _external=True))
-
-
-@app.route('/login/twitter/')
-def tconnect():
-    """Login using Twitter."""
-    login_session['method'] = 'twitter'
-    callback_url = url_for('authorized', next=request.args.get('next'))
-    return twitter.authorize(callback=callback_url or request.referrer or None)
+    if request.args.get('state') != login_session['state']:
+        return 'Fail'
+    flow = flow_from_clientsecrets('/Users/richard/udacity/fullstack-nanodegree-vm/vagrant/item-catalog/instance/client_secrets.json',
+                                scope='https://www.googleapis.com/auth/userinfo.email',
+                                redirect_uri=client_secrets.get('redirect_uris')[0])
+    # Redirect the user to auth_uri on your platform.
+    auth_uri = flow.step1_get_authorize_url()
+    return redirect(auth_uri)
 
 
 @app.route('/logout/')
 def logout():
     """Logout from session."""
-    if login_session.get('method') == 'google':
+    if 'access_token' in login_session:
         login_session.pop('access_token', None)
-    elif login_session.get('method') == 'twitter':
-        login_session.pop('screen_name', None)
     del login_session['username']
     del login_session['picture']
     flash('You were signed out')
-    return redirect(request.referrer or url_for('index'))
+    return redirect(url_for('index'))
 
 
 @app.route('/login/authorized')
-def authorized(resp=None, next=None):
-    """Callback function for Twitter and Google login."""
-    if login_session.get('method') == 'google':
-        resp = google.authorized_response()
-        if resp is None:
-            return 'Access denied: reason={} error={}'.format(
-                request.args['error_reason'],
-                request.args['error_description']
-            )
-        login_session['access_token'] = (resp['access_token'], '')
-        login_session['username'] = google.get('userinfo').data.get('email')
-        login_session['picture'] = google.get('userinfo').data.get('picture')
-        user_id = getUserID(login_session['username'])
-        if not user_id:
-            user_id = createUser(login_session)
-        login_session['user_id'] = user_id
-        return redirect(url_for('index'))
-    elif login_session.get('method') == 'twitter':
-        resp = twitter.authorized_response()
-        if resp is None:
-            flash('You denied the request to sign in.')
-        else:
-            login_session['twitter_oauth'] = resp
-            login_session['access_token'] = (resp['access_token'], '')
-            login_session['user_info'] = twitter.get('userinfo')
-            user_id = getUserID(login_session['username'])
-            if not user_id:
-                user_id = createUser(login_session)
-            login_session['user_id'] = user_id
-            return redirect(url_for('index'))
+def callback():
+    """Callback function for Google login."""
+    code = request.args.get('code')
+    # Pass code provided by authorization server redirection to this function
+    flow = flow_from_clientsecrets('/Users/richard/udacity/fullstack-nanodegree-vm/vagrant/item-catalog/instance/client_secrets.json',
+                                scope='https://www.googleapis.com/auth/userinfo.email',
+                                redirect_uri=client_secrets.get('redirect_uris')[0]) 
+    credentials = flow.step2_exchange(code)
+    # Supply access token to information request using httplib2
+    access_token = credentials.access_token
+    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.\
+        format(access_token))
+    h = httplib2.Http()
+    result = json.loads(h.request(url, 'GET')[1])
+    # Check user is not already logged in using gconnect
+    gplus_id = credentials.id_token['sub']
+    stored_credentials = login_session.get('credentials')
+    stored_gplus_id = login_session.get('gplus_id')
+    if stored_credentials != None and gplus_id == stored_gplus_id:
+        response = make_response(
+            json.dumps("Current user is already connected."), 200
+        )
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    # Store the access token in session for later use
+    login_session['credentials'] = credentials.access_token
+    login_session['gplus_id'] = gplus_id
+    # Get user info
+    userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+    params = {'access_token': credentials.access_token, 'alt': 'json'}
+    answer = requests.get(userinfo_url, params=params)
+    data = answer.json()
+    login_session['provider'] = 'google'
+    login_session['username'] = data['email']
+    login_session['picture'] = data['picture']
+    login_session['email'] = data['email']
+    return 'Code: {}, credentials: {}, result: {}, email: {}'.format(code, credentials, result, login_session['username'])
+
 
 
 @app.route('/category/<int:categoryid>/')
@@ -229,23 +175,31 @@ def showCategory(categoryid):
         login_session=login_session)
 
 
+@app.route('/warning/')
+def warning():
+    return render_template('warning.html')
+
+
 @app.route('/category/new/', methods=['GET','POST'])
 def newCategory():
     """Return page to add a NEW CATEGORY."""
     categories = session.query(Category).all()
     itemid = None
     categoryid = None
-    if request.method == 'POST':
-        new_category = Category(name=request.form['name'],
-            user_id=login_session['user_id'])
-        session.add(new_category)
-        session.commit()
-        return redirect(url_for('index'))
-    elif request.method == 'GET':
-        return render_template('categorynew.html',
-            categories=categories, categoryid=categoryid,
-            itemid=itemid,
-            login_session=login_session)
+    if 'username' in login_session:
+        if request.method == 'POST':
+            new_category = Category(name=request.form['name'],
+                user_id=login_session['user_id'])
+            session.add(new_category)
+            session.commit()
+            return redirect(url_for('index'))
+        elif request.method == 'GET':
+            return render_template('categorynew.html',
+                categories=categories, categoryid=categoryid,
+                itemid=itemid,
+                login_session=login_session)
+    else:
+        return redirect(url_for('warning'))
 
 
 @app.route('/category/<int:categoryid>/edit/', methods=['GET', 'POST'])
@@ -254,17 +208,24 @@ def editCategory(categoryid):
     categories = session.query(Category).all()
     itemid = None
     category = session.query(Category).filter_by(id=categoryid).one()
-    if request.method == 'POST':
-        if request.form.get('name') != '':
-            category.name = request.form.get('name')
-            session.add(category)
-            session.commit()
-        return redirect(url_for('showCategory', categoryid=categoryid))
-    if request.method == 'GET':
-        return render_template('categoryedit.html',
-            categories=categories, categoryid=categoryid, category=category,
-            itemid=itemid,
-            login_session=login_session)
+    creator = getUserInfo(category.user_id)
+    if creator == None:
+        return redirect(url_for('warning'))
+    if 'username' in login_session and\
+        creator.id == login_session.get('user_id'):
+        if request.method == 'POST':
+            if request.form.get('name') != '':
+                category.name = request.form.get('name')
+                session.add(category)
+                session.commit()
+            return redirect(url_for('showCategory', categoryid=categoryid))
+        if request.method == 'GET':
+            return render_template('categoryedit.html',
+                categories=categories, categoryid=categoryid, category=category,
+                itemid=itemid,
+                login_session=login_session)
+    else:
+        return redirect(url_for('warning'))
 
 
 @app.route('/category/<int:categoryid>/delete/', methods=['GET', 'POST'])
@@ -273,15 +234,25 @@ def deleteCategory(categoryid):
     categories = session.query(Category).all()
     itemid = None
     category = session.query(Category).filter_by(id=categoryid).one()
-    if request.method == 'POST':
-        session.delete(category)
-        session.commit()
-        return redirect(url_for('index'))
-    elif request.method == 'GET':
-        return render_template('categorydelete.html',
-        categories=categories, categoryid=categoryid, category=category,
-        itemid=itemid,
-        login_session=login_session)
+    creator = getUserInfo(category.user_id)
+    if creator == None:
+        return redirect(url_for('warning'))
+    if 'username' in login_session and\
+        creator.id == login_session.get('user_id'):
+        if request.method == 'POST':
+            items = session.query(Item).filter_by(category_id=categoryid).all()
+            for item in items:
+                session.delete(item)
+            session.delete(category)
+            session.commit()
+            return redirect(url_for('index'))
+        elif request.method == 'GET':
+            return render_template('categorydelete.html',
+            categories=categories, categoryid=categoryid, category=category,
+            itemid=itemid,
+            login_session=login_session)
+    else:
+        return redirect(url_for('warning'))
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/')
@@ -302,20 +273,23 @@ def newItem(categoryid):
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_id=categoryid).all()
     itemid = None
-    if request.method == 'POST':
-        new_item = Item(name=request.form['name'], 
-            description=request.form['description'],
-            category_id=categoryid,
-            user_id=login_session['user_id']
-        )
-        session.add(new_item)
-        session.commit()
-        return redirect(url_for('showCategory', categoryid=categoryid))
-    elif request.method == 'GET':
-        return render_template('itemnew.html',
-            categories=categories, categoryid=categoryid,
-            itemid=itemid, items=items,
-            login_session=login_session)
+    if 'username' in login_session:
+        if request.method == 'POST':
+            new_item = Item(name=request.form['name'], 
+                description=request.form['description'],
+                category_id=categoryid,
+                user_id=login_session['user_id']
+            )
+            session.add(new_item)
+            session.commit()
+            return redirect(url_for('showCategory', categoryid=categoryid))
+        elif request.method == 'GET':
+            return render_template('itemnew.html',
+                categories=categories, categoryid=categoryid,
+                itemid=itemid, items=items,
+                login_session=login_session)
+    else:
+        return redirect(url_for('warning'))
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/edit/', methods=['GET', 'POST'])
@@ -325,29 +299,31 @@ def editItem(categoryid, itemid):
     items = session.query(Item).filter_by(category_id=categoryid).all()
     category = session.query(Category).filter_by(id=categoryid).one()
     item = session.query(Item).filter_by(id=itemid).one()
-    if request.method == 'POST':
-        if request.form.get('name') != '':
-            item.name = request.form.get('name')
-        if request.form.get('description') != '':
-            item.description = request.form.get('description')
-        session.add(item)
-        session.commit()
-        return redirect(url_for('showCategory', categoryid=categoryid))
-    elif request.method == 'GET':
-        return render_template('itemedit.html',
-            categories=categories, categoryid=categoryid, category=category,
-            itemid=itemid, items=items, item=item,
-            login_session=login_session)
-
-
-@app.route('/warning/')
-def warning():
-    return render_template('itemwarning.html')
+    creator = getUserInfo(item.user_id)
+    if creator == None:
+        return redirect(url_for('warning'))
+    if 'username' in login_session and\
+        creator.id == login_session.get('user_id'):
+        if request.method == 'POST':
+            if request.form.get('name') != '':
+                item.name = request.form.get('name')
+            if request.form.get('description') != '':
+                item.description = request.form.get('description')
+            session.add(item)
+            session.commit()
+            return redirect(url_for('showCategory', categoryid=categoryid))
+        elif request.method == 'GET':
+            return render_template('itemedit.html',
+                categories=categories, categoryid=categoryid, category=category,
+                itemid=itemid, items=items, item=item,
+                login_session=login_session)
+    else:
+        return redirect(url_for('warning'))
 
 
 @app.route('/category/<int:categoryid>/item/<int:itemid>/delete/', methods=['GET', 'POST'])
 def deleteItem(categoryid, itemid):
-    """Return page to DELETE specific ITEM."""     
+    """Return page to DELETE specific ITEM."""
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_id=categoryid).all()
     category = session.query(Category).filter_by(id=categoryid).one()
@@ -401,7 +377,7 @@ def catalogAPIEndpoint():
 
 def main():
     """Serve up a webpage on localhost."""
-    app.secret_key = 'key'
+    app.secret_key = 'a_better_key'
     app.run('localhost', port=8080, debug=True)
 
 
