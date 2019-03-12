@@ -7,14 +7,14 @@ html {
 
 body > .container {
   /* Margin bottom by footer height */
-  margin-bottom: 300px;
+  margin-bottom: 330px;
 }
 .footermenu {
     position: absolute;
     bottom: 50px;
     width: 100%;
     /* Set the fixed height of the footer here */
-    height: 250px;
+    height: 230px;
     background-image: linear-gradient(to right, #EBC51D , #E56500);
 }
 .footer {

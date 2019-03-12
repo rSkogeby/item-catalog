@@ -37,3 +37,12 @@
     </ul>
   </div>
 </nav>
+<div class='col-lg-12 text-center'>
+<p>{% with messages = get_flashed_messages() %}
+        {% if messages%}
+        {% for message in messages %}
+        <em><strong>{{message}}</strong></em>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}</p><br/>
+</div>

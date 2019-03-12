@@ -118,6 +118,8 @@ def logout():
         login_session.pop('access_token', None)
     del login_session['username']
     del login_session['picture']
+    del login_session['credentials']
+    del login_session['gplus_id']
     flash('You were signed out')
     return redirect(url_for('index'))
 
@@ -159,8 +161,15 @@ def callback():
     login_session['username'] = data['email']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
-    return 'Code: {}, credentials: {}, result: {}, email: {}'.format(code, credentials, result, login_session['username'])
-
+    # See if user exists in db if it doesn't, create a new one.
+    user_id = getUserID(login_session['username'])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+    # Flash message on next page with a header
+    flash_string = 'You are signed in as {}.'.format(login_session['username'])
+    flash(flash_string)
+    return redirect(url_for('index'))
 
 
 @app.route('/category/<int:categoryid>/')
