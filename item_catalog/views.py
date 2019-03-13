@@ -343,6 +343,8 @@ def editItem(categoryid, itemid):
                 item.name = request.form.get('name')
             if request.form.get('description') != '':
                 item.description = request.form.get('description')
+            if request.form.get('category') != '':
+                item.category_id = request.form.get('category')
             session.add(item)
             session.commit()
             return redirect(url_for('showCategory', categoryid=categoryid))
