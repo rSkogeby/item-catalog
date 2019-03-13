@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 {% block snippet %}
-<div class="col-lg-3">
+<div class="col-xs-3">
     <h1>Delete item</h1>
     <form action='{{url_for('deleteItem', categoryid=category.id, itemid=itemid)}}' method='POST'>
     <div class="form-group">

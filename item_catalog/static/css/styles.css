@@ -15,9 +15,9 @@ body {
 }
 
 
-body>.container {
+body>.container-fullwidth {
   /* Margin bottom by footer height */
-  margin-bottom: 330px;
+  margin-bottom: 100px;
 }
 
 .footermenu {
@@ -25,7 +25,7 @@ body>.container {
   bottom: 50px;
   width: 100%;
   /* Set the fixed height of the footer here */
-  height: 230px;
+  height: 30px;
   background-image: linear-gradient(to right, #EBC51D, #E56500);
 }
 
@@ -41,8 +41,8 @@ body>.container {
 .container-fullwidth .text-muted {
   margin: 15px 0;
   color: #EBC51D;
-  margin-left: 150px;
-  margin-right: 150px;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 
 .container-fullwidth .text-muted .link{
