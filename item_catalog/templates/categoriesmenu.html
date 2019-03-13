@@ -7,19 +7,17 @@
         <a href="{{url_for('showCategory', categoryid=category.id)}}" class="list-group-item">{{category.name}}</a>
         {% endif %}
         {% endfor %}
-        <div class="btn">
-            <a href={{url_for('newCategory')}}>
-                <i class="far fa-plus-square"></i>
-            </a>
-            {% if categoryid != None %}
-            <a href={{url_for('editCategory', categoryid=categoryid)}}>
-                <i class="fas fa-edit"></i>
-            </a>
-            <a href={{url_for('deleteCategory', categoryid=categoryid)}}>
-                <i class="far fa-trash-alt"></i>
-            </a>
-            {% endif %}
+        <a href={{url_for('newCategory')}} class="btn">
+            <i class="far fa-plus-square"></i>
+        </a>
+        {% if categoryid != None %}
+        <a href={{url_for('editCategory', categoryid=categoryid)}} class="btn">
+            <i class="fas fa-edit"></i>
+        </a>
+        <a href={{url_for('deleteCategory', categoryid=categoryid)}} class="btn">
+            <i class="far fa-trash-alt"></i>
+        </a>
+        {% endif %}
 
-        </div>
     </div>
 </div>
