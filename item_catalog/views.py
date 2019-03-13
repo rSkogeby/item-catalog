@@ -88,6 +88,12 @@ def aboutus():
     return render_template('aboutus.html', login_session=login_session)
 
 
+@app.route('/privacy-policy/')
+def privacy():
+    """Return an about us page describing what we are and who we do."""
+    return render_template('privacypolicy.html', login_session=login_session)
+
+
 @app.route('/login/')
 def login():
     """Return page with login options."""

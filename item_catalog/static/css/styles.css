@@ -1,9 +1,19 @@
 /* Sticky footer styles
 -------------------------------------------------- */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html {
   position: relative;
   min-height: 100%;
 }
+
+body {
+  font-family: -apple-system,BlinkMacSystemFont,sans-serif;
+}
+
 
 body>.container {
   /* Margin bottom by footer height */
@@ -28,10 +38,16 @@ body>.container {
   background-color: #2c2f33;
 }
 
-.container .text-muted {
+.container-fullwidth .text-muted {
   margin: 15px 0;
   color: #EBC51D;
-  font-family: Arial, Helvetica, sans-serif;
+  margin-left: 150px;
+  margin-right: 150px;
+}
+
+.container-fullwidth .text-muted .link{
+  color: #EBC51D;
+  font-weight: bold; 
 }
 
 /* Login page*/
@@ -97,4 +113,12 @@ body>.container {
 
 .input-group-addon .fa {
   font-size: 18px;
+}
+.mainbody {
+  background-color: gainsboro;
+}
+
+.navbarmargin {
+  margin-left: 150px;
+  margin-right: 150px;
 }
