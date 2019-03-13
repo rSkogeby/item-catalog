@@ -2,3 +2,4 @@ instance
 *vscode*
 *pycache*
 *DS_Store*
+.env
