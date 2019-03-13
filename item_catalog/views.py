@@ -6,6 +6,7 @@ import string
 import httplib2
 import requests
 import json
+import os
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify,\
     flash, g, make_response
@@ -14,14 +15,15 @@ from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from flask_login import LoginManager, login_required
-from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import flow_from_clientsecrets, OAuth2WebServerFlow
 
 from item_catalog.models import Base, Category, Item, User
 
 
 app = Flask(__name__)
-client_secrets_file = open('instance/client_secrets.json').read()
-client_secrets = json.loads(client_secrets_file).get('web')
+_google_client_id = os.environ.get('GOOGLE_CLIENT_ID', None)
+_google_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', None)
+_google_redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI', None)
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
@@ -111,10 +113,11 @@ def gconnect():
     """Login using Google."""
     if request.args.get('state') != login_session['state']:
         return 'Fail'
-    flow = flow_from_clientsecrets(
-        'instance/client_secrets.json',
+    flow = OAuth2WebServerFlow(
+        client_id=_google_client_id,
+        client_secret=_google_client_secret,
         scope='https://www.googleapis.com/auth/userinfo.email',
-        redirect_uri=client_secrets.get('redirect_uris')[0]
+        redirect_uri=_google_redirect_uri
     )
     # Redirect the user to auth_uri on your platform.
     auth_uri = flow.step1_get_authorize_url()
@@ -139,11 +142,12 @@ def callback():
     """Callback function for Google login."""
     code = request.args.get('code')
     # Pass code provided by authorization server redirection to this function
-    flow = flow_from_clientsecrets(
-        'instance/client_secrets.json',
+    flow = OAuth2WebServerFlow(
+        client_id=_google_client_id,
+        client_secret=_google_client_secret,
         scope='https://www.googleapis.com/auth/userinfo.email',
-        redirect_uri=client_secrets.get('redirect_uris')[0]
-        )
+        redirect_uri=_google_redirect_uri
+    )
     credentials = flow.step2_exchange(code)
     # Supply access token to information request using httplib2
     access_token = credentials.access_token
