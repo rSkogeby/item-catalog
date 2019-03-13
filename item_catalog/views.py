@@ -13,14 +13,11 @@ from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
-from flask_oauthlib.client import OAuth
 from flask_login import LoginManager, login_required
 from oauth2client.client import flow_from_clientsecrets
-from OpenSSL import SSL
 
 from item_catalog.models import Base, Category, Item, User
-from instance.config import getGoogleClientId, getGoogleSecret,\
-                            getTwitterAPIKey, getTwitterSecret
+
 
 app = Flask(__name__)
 client_secrets_file = open('instance/client_secrets.json').read()

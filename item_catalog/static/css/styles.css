@@ -98,3 +98,8 @@ body>.container {
 .input-group-addon .fa {
   font-size: 18px;
 }
+
+.copyleft {
+  display:inline-block;
+  transform: rotate(180deg);
+}
