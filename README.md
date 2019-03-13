@@ -19,6 +19,7 @@ is added using the Google OAuth2 API.
 - [oauth2client](https://pypi.org/project/oauth2client/)
 - [httplib2](https://pypi.org/project/httplib2/)
 - [SQLAlchemy](https://pypi.org/project/SQLAlchemy/)
+- [requests](https://pypi.org/project/requests/)
 
 ## Design
 
