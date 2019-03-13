@@ -7,7 +7,8 @@ import httplib2
 import requests
 import json
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, g, make_response
+from flask import Flask, render_template, request, redirect, url_for, jsonify,\
+    flash, g, make_response
 from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
@@ -22,7 +23,7 @@ from instance.config import getGoogleClientId, getGoogleSecret,\
                             getTwitterAPIKey, getTwitterSecret
 
 app = Flask(__name__)
-client_secrets_file = open('/Users/richard/udacity/fullstack-nanodegree-vm/vagrant/item-catalog/instance/client_secrets.json').read()
+client_secrets_file = open('instance/client_secrets.json').read()
 client_secrets = json.loads(client_secrets_file).get('web')
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
@@ -34,8 +35,6 @@ session = DBSession()
 def getUserID(email):
     """Fetch user ID if in DB, else return None."""
     try:
-        DBSession = sessionmaker(bind=engine)
-        session = DBSession()
         user = session.query(User).filter_by(username=email).one()
         return user.id
     except:
@@ -58,42 +57,48 @@ def createUser(login_session):
                    picture=login_session['picture'])
     session.add(newUser)
     session.commit()
-    user = session.query(User).filter_by(username=login_session['username']).one()
+    user = session.query(User).\
+        filter_by(username=login_session['username']).one()
     return user.id
 
 
 @app.route('/')
 def index():
     """Return index page.
-    
+
     The index page presents:
-    - a header with the title of the website and a button that takes 
+    - a header with the title of the website and a button that takes
     you to the login page. If you are logged in it logs you out.
     - a categories menu that displays all available categories.
     - a column with the latest items added.
     """
-    
-    #if 'username' not in login_session:
-    #    return redirect(url_for('login'))
     categories = session.query(Category).all()
     categoryid = None
     itemid = None
-    latest_items = session.query(Item).order_by(desc(Item.creation_date)).limit(5).all()
-    return render_template('landingpage.html',
+    latest_items = session.query(Item).\
+        order_by(desc(Item.creation_date)).limit(5).all()
+    return render_template(
+        'landingpage.html',
         categories=categories, categoryid=categoryid,
         itemid=itemid, latest_items=latest_items,
-        login_session=login_session)
+        login_session=login_session
+    )
 
 
 @app.route('/about-us/')
 def aboutus():
+    """Return an about us page describing what we are and who we do."""
     return render_template('aboutus.html', login_session=login_session)
 
 
 @app.route('/login/')
 def login():
     """Return page with login options."""
-    passthrough_value = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+    passthrough_value = ''.join(
+        random.choice(
+            string.ascii_uppercase + string.digits
+        ) for x in range(32)
+    )
     login_session['state'] = passthrough_value
     return render_template('login.html', login_session=login_session)
 
@@ -103,9 +108,11 @@ def gconnect():
     """Login using Google."""
     if request.args.get('state') != login_session['state']:
         return 'Fail'
-    flow = flow_from_clientsecrets('/Users/richard/udacity/fullstack-nanodegree-vm/vagrant/item-catalog/instance/client_secrets.json',
-                                scope='https://www.googleapis.com/auth/userinfo.email',
-                                redirect_uri=client_secrets.get('redirect_uris')[0])
+    flow = flow_from_clientsecrets(
+        'instance/client_secrets.json',
+        scope='https://www.googleapis.com/auth/userinfo.email',
+        redirect_uri=client_secrets.get('redirect_uris')[0]
+    )
     # Redirect the user to auth_uri on your platform.
     auth_uri = flow.step1_get_authorize_url()
     return redirect(auth_uri)
@@ -129,21 +136,23 @@ def callback():
     """Callback function for Google login."""
     code = request.args.get('code')
     # Pass code provided by authorization server redirection to this function
-    flow = flow_from_clientsecrets('/Users/richard/udacity/fullstack-nanodegree-vm/vagrant/item-catalog/instance/client_secrets.json',
-                                scope='https://www.googleapis.com/auth/userinfo.email',
-                                redirect_uri=client_secrets.get('redirect_uris')[0]) 
+    flow = flow_from_clientsecrets(
+        'instance/client_secrets.json',
+        scope='https://www.googleapis.com/auth/userinfo.email',
+        redirect_uri=client_secrets.get('redirect_uris')[0]
+        )
     credentials = flow.step2_exchange(code)
     # Supply access token to information request using httplib2
     access_token = credentials.access_token
-    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.\
-        format(access_token))
+    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.
+           format(access_token))
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
     # Check user is not already logged in using gconnect
     gplus_id = credentials.id_token['sub']
     stored_credentials = login_session.get('credentials')
     stored_gplus_id = login_session.get('gplus_id')
-    if stored_credentials != None and gplus_id == stored_gplus_id:
+    if stored_credentials is not None and gplus_id == stored_gplus_id:
         response = make_response(
             json.dumps("Current user is already connected."), 200
         )
@@ -178,18 +187,21 @@ def showCategory(categoryid):
     categories = session.query(Category).all()
     itemid = None
     items = session.query(Item).filter_by(category_id=categoryid).all()
-    return render_template('categorydisplay.html',
+    return render_template(
+        'categorydisplay.html',
         categories=categories, categoryid=categoryid,
         items=items, itemid=itemid,
-        login_session=login_session)
+        login_session=login_session
+    )
 
 
 @app.route('/warning/')
 def warning():
+    """Return warning page if the user does not have the correct privileges."""
     return render_template('warning.html')
 
 
-@app.route('/category/new/', methods=['GET','POST'])
+@app.route('/category/new/', methods=['GET', 'POST'])
 def newCategory():
     """Return page to add a NEW CATEGORY."""
     categories = session.query(Category).all()
@@ -197,13 +209,16 @@ def newCategory():
     categoryid = None
     if 'username' in login_session:
         if request.method == 'POST':
-            new_category = Category(name=request.form['name'],
-                user_id=login_session['user_id'])
+            new_category = Category(
+                name=request.form['name'],
+                user_id=login_session['user_id']
+            )
             session.add(new_category)
             session.commit()
             return redirect(url_for('index'))
         elif request.method == 'GET':
-            return render_template('categorynew.html',
+            return render_template(
+                'categorynew.html',
                 categories=categories, categoryid=categoryid,
                 itemid=itemid,
                 login_session=login_session)
@@ -218,10 +233,10 @@ def editCategory(categoryid):
     itemid = None
     category = session.query(Category).filter_by(id=categoryid).one()
     creator = getUserInfo(category.user_id)
-    if creator == None:
+    if creator is None:
         return redirect(url_for('warning'))
-    if 'username' in login_session and\
-        creator.id == login_session.get('user_id'):
+    if 'username' in login_session\
+            and creator.id == login_session.get('user_id'):
         if request.method == 'POST':
             if request.form.get('name') != '':
                 category.name = request.form.get('name')
@@ -229,10 +244,11 @@ def editCategory(categoryid):
                 session.commit()
             return redirect(url_for('showCategory', categoryid=categoryid))
         if request.method == 'GET':
-            return render_template('categoryedit.html',
-                categories=categories, categoryid=categoryid, category=category,
-                itemid=itemid,
-                login_session=login_session)
+            return render_template(
+                'categoryedit.html', categories=categories,
+                categoryid=categoryid, category=category,
+                itemid=itemid, login_session=login_session
+            )
     else:
         return redirect(url_for('warning'))
 
@@ -244,10 +260,10 @@ def deleteCategory(categoryid):
     itemid = None
     category = session.query(Category).filter_by(id=categoryid).one()
     creator = getUserInfo(category.user_id)
-    if creator == None:
+    if creator is None:
         return redirect(url_for('warning'))
-    if 'username' in login_session and\
-        creator.id == login_session.get('user_id'):
+    if 'username' in login_session\
+            and creator.id == login_session.get('user_id'):
         if request.method == 'POST':
             items = session.query(Item).filter_by(category_id=categoryid).all()
             for item in items:
@@ -256,10 +272,12 @@ def deleteCategory(categoryid):
             session.commit()
             return redirect(url_for('index'))
         elif request.method == 'GET':
-            return render_template('categorydelete.html',
-            categories=categories, categoryid=categoryid, category=category,
-            itemid=itemid,
-            login_session=login_session)
+            return render_template(
+                'categorydelete.html', categories=categories,
+                categoryid=categoryid, category=category,
+                itemid=itemid,
+                login_session=login_session
+            )
     else:
         return redirect(url_for('warning'))
 
@@ -269,14 +287,17 @@ def showItem(categoryid, itemid):
     """Return page with description of specific item."""
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_id=categoryid).all()
-    item = session.query(Item).filter_by(category_id=categoryid, id=itemid).one()
-    return render_template('itemdisplay.html', categories=categories,
+    item = session.query(Item).\
+        filter_by(category_id=categoryid, id=itemid).one()
+    return render_template(
+        'itemdisplay.html', categories=categories,
         categoryid=categoryid,
         items=items, item=item, itemid=itemid,
-        login_session=login_session)
+        login_session=login_session
+    )
 
 
-@app.route('/category/<int:categoryid>/item/new/', methods=['GET','POST'])
+@app.route('/category/<int:categoryid>/item/new/', methods=['GET', 'POST'])
 def newItem(categoryid):
     """Return page to add a new item to the category."""
     categories = session.query(Category).all()
@@ -284,7 +305,8 @@ def newItem(categoryid):
     itemid = None
     if 'username' in login_session:
         if request.method == 'POST':
-            new_item = Item(name=request.form['name'], 
+            new_item = Item(
+                name=request.form['name'],
                 description=request.form['description'],
                 category_id=categoryid,
                 user_id=login_session['user_id']
@@ -293,15 +315,18 @@ def newItem(categoryid):
             session.commit()
             return redirect(url_for('showCategory', categoryid=categoryid))
         elif request.method == 'GET':
-            return render_template('itemnew.html',
+            return render_template(
+                'itemnew.html',
                 categories=categories, categoryid=categoryid,
                 itemid=itemid, items=items,
-                login_session=login_session)
+                login_session=login_session
+            )
     else:
         return redirect(url_for('warning'))
 
 
-@app.route('/category/<int:categoryid>/item/<int:itemid>/edit/', methods=['GET', 'POST'])
+@app.route('/category/<int:categoryid>/item/<int:itemid>/edit/',
+           methods=['GET', 'POST'])
 def editItem(categoryid, itemid):
     """Return page to EDIT specific ITEM."""
     categories = session.query(Category).all()
@@ -309,10 +334,10 @@ def editItem(categoryid, itemid):
     category = session.query(Category).filter_by(id=categoryid).one()
     item = session.query(Item).filter_by(id=itemid).one()
     creator = getUserInfo(item.user_id)
-    if creator == None:
+    if creator is None:
         return redirect(url_for('warning'))
-    if 'username' in login_session and\
-        creator.id == login_session.get('user_id'):
+    if 'username' in login_session\
+            and creator.id == login_session.get('user_id'):
         if request.method == 'POST':
             if request.form.get('name') != '':
                 item.name = request.form.get('name')
@@ -322,15 +347,18 @@ def editItem(categoryid, itemid):
             session.commit()
             return redirect(url_for('showCategory', categoryid=categoryid))
         elif request.method == 'GET':
-            return render_template('itemedit.html',
-                categories=categories, categoryid=categoryid, category=category,
+            return render_template(
+                'itemedit.html', categories=categories,
+                categoryid=categoryid, category=category,
                 itemid=itemid, items=items, item=item,
-                login_session=login_session)
+                login_session=login_session
+            )
     else:
         return redirect(url_for('warning'))
 
 
-@app.route('/category/<int:categoryid>/item/<int:itemid>/delete/', methods=['GET', 'POST'])
+@app.route('/category/<int:categoryid>/item/<int:itemid>/delete/',
+           methods=['GET', 'POST'])
 def deleteItem(categoryid, itemid):
     """Return page to DELETE specific ITEM."""
     categories = session.query(Category).all()
@@ -338,46 +366,48 @@ def deleteItem(categoryid, itemid):
     category = session.query(Category).filter_by(id=categoryid).one()
     item = session.query(Item).filter_by(id=itemid).one()
     creator = getUserInfo(item.user_id)
-    if creator == None:
+    if creator is None:
         return redirect(url_for('warning'))
     if 'username' in login_session and\
-        creator.id == login_session.get('user_id'):
+            creator.id == login_session.get('user_id'):
         if request.method == 'POST':
             session.delete(item)
             session.commit()
             return redirect(url_for('showCategory', categoryid=categoryid))
         elif request.method == 'GET':
-            return render_template('itemdelete.html',
-                categories=categories, categoryid=categoryid, category=category,
+            return render_template(
+                'itemdelete.html', categories=categories,
+                categoryid=categoryid, category=category,
                 itemid=itemid, items=items, item=item,
-                login_session=login_session)
+                login_session=login_session
+            )
     else:
         return redirect(url_for('warning'))
 
 
-@app.route('/category/JSON/')
+@app.route('/category.json/')
 def categoryAPIEndpoint():
     """Return page to display JSON formatted information of category."""
     categories = session.query(Category).all()
     return jsonify(Categories=[i.serialize for i in categories])
 
 
-@app.route('/category/<int:categoryid>/JSON/')
+@app.route('/category/<int:categoryid>.json/')
 def itemAPIEndpoint(categoryid):
     """Return page to display JSON formatted information of item."""
     items = session.query(Item).filter_by(category_id=categoryid).all()
     return jsonify(Items=[i.serialize for i in items])
 
 
-@app.route('/catalog/JSON/')
+@app.route('/catalog.json/')
 def catalogAPIEndpoint():
-    """Return page to display JSON formatted information of whole catalog."""    
+    """Return page to display JSON formatted information of whole catalog."""
     categories = session.query(Category).all()
     catalog = {}
     for category in categories:
         cats = category.serialize
         items = session.query(Item).filter_by(category_id=category.id).all()
-        if items != None:
+        if items is not None:
             iser = [i.serialize for i in items]
             cats['Item'] = iser
         catalog[category.id] = cats
