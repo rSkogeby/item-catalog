@@ -1,19 +1,21 @@
 {% extends "index.html" %}
 {% block snippet %}
 <div class="col-lg-3">
-      <h1>New item</h1>
-      <form action='{{url_for('newItem', categoryid=categoryid)}}' method='POST'>
-            <div class="form-group">
-                  <label for="newprompt">Enter the name you would like your item to have.</label>
-                  <input type='text' name="name" class="form-control" id="newprompt" aria-describedby="newHelp" placeholder='Tennis racquet'>
-                  <small id="newHelp" class="form-text text-muted">You can change your name later on by editing the item.</small>
-            </div>
-            <div class="form-group">
-                  <label for="description">Give it a description.</label>
-                  <input type='text' name="description" class="form-control" id="description" placeholder='This item...'>
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button> 
-            <a href='{{url_for('showCategory', categoryid=categoryid)}}'>Cancel</a>
-      </form>
+    <h1>New item</h1>
+    <form action='{{url_for('newItem', categoryid=categoryid)}}' method='POST'>
+    <div class="form-group">
+        <label for="newprompt">Enter the name you would like your item to have.</label>
+        <input type='text' name="name" class="form-control" id="newprompt" aria-describedby="newHelp"
+            placeholder='Tennis racquet'>
+        <small id="newHelp" class="form-text text-muted">You can change your name later on by editing the
+        item.</small>
+    </div>
+    <div class="form-group">
+        <label for="description">Give it a description.</label>
+        <input type='text' name="description" class="form-control" id="description" placeholder='This item...'>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a href='{{url_for('showCategory', categoryid=categoryid)}}'>Cancel</a>
+    </form>
 </div>
 {% endblock %}
