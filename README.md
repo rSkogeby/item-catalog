@@ -7,8 +7,8 @@ in an item catalog.
 
 Item Catalog is a web application written in Python 3 using the Flask framework.
 It serves up a website that allows you to create, view, update and delete
-categories and items in the catalog.  All logged in users can add items for 
-public display. Users can edit their own entries. Login functionality 
+categories and items in the catalog.  All logged in users can add items for
+public display. Users can edit their own entries. Login functionality
 is added using the Google OAuth2 API.
 
 ## Requirements
@@ -20,6 +20,7 @@ is added using the Google OAuth2 API.
 - [httplib2](https://pypi.org/project/httplib2/)
 - [SQLAlchemy](https://pypi.org/project/SQLAlchemy/)
 - [requests](https://pypi.org/project/requests/)
+- [dotenv](https://pypi.org/project/python-dotenv/)
 
 ## Design
 
@@ -47,10 +48,18 @@ Create an "instance" directory in your item-catalog folder:
 mkdir instance
 ```
 
-and move your client_secrets.json to that folder:
+In the root directory create a file named .env, add it to your .gitignore
+and fill in the required information:
 
 ``` bash
-mv client_secrets.json path/to/item-catalog/instance
+import os
+DATABASE_PASSWORD =
+GOOGLE_CLIENT_ID =
+GOOGLE_CLIENT_SECRET =
+GOOGLE_REDIRECT_URI =
+LISTEN_INTERFACE = 0.0.0.0
+LISTEN_PORT = 8080
+
 ```
 
 Install required libraries:
