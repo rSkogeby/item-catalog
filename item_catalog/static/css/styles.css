@@ -11,7 +11,7 @@ html {
 }
 
 body {
-  font-family: -apple-system,BlinkMacSystemFont,sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 
@@ -45,9 +45,9 @@ body>.container-fullwidth {
   margin-right: 0px;
 }
 
-.container-fullwidth .text-muted .link{
+.container-fullwidth .text-muted .link {
   color: #EBC51D;
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 /* Login page*/
@@ -114,6 +114,7 @@ body>.container-fullwidth {
 .input-group-addon .fa {
   font-size: 18px;
 }
+
 .mainbody {
   background-color: gainsboro;
 }

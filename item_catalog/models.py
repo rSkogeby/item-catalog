@@ -12,11 +12,6 @@ from passlib.apps import custom_app_context as pwd_context
 class Mixin(object):
     """Add mixin for create and update timestaps in declarative base."""
 
-    @declared_attr
-    def __tablename__(cls):
-        """Doc."""
-        return cls.__name__.lower()
-
     creation_date = Column(DateTime, default=func.now())
     last_modified = Column(DateTime, onupdate=func.now())
 
@@ -55,8 +50,8 @@ class Category(Base):
 
     @property
     def serialize(self):
-        """Doc."""
-        # Return object data in easily serialisable format
+        """Return object data in easily serialisable format"""
+
         return {
             'name': self.name,
             'id': self.id
@@ -79,8 +74,8 @@ class Item(Base):
 
     @property
     def serialize(self):
-        """Doc."""
-        # Return object data in easily serialisable format
+        """Return object data in easily serialisable format."""
+
         return {
             'name': self.name,
             'description': self.description,
