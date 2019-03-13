@@ -425,8 +425,11 @@ def catalogAPIEndpoint():
 
 def main():
     """Serve up a webpage on localhost."""
-    app.secret_key = 'a_better_key'
-    app.run('localhost', port=8080, debug=True)
+
+    ipaddr = os.environ.get('LISTEN_INTERFACE', None)
+    port = os.environ.get('LISTEN_PORT', None)
+    app.secret_key = os.environ.get('DATABASE_PASSWORD', None)
+    app.run(ipaddr, port=port, debug=True)
 
 
 if __name__ == "__main__":
