@@ -18,12 +18,9 @@ from flask_login import LoginManager, login_required
 from oauth2client.client import flow_from_clientsecrets, OAuth2WebServerFlow
 
 from item_catalog.models import Base, Category, Item, User
-
+import config
 
 app = Flask(__name__)
-_google_client_id = os.environ.get('GOOGLE_CLIENT_ID', None)
-_google_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', None)
-_google_redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI', None)
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
@@ -114,10 +111,10 @@ def gconnect():
     if request.args.get('state') != login_session['state']:
         return 'Fail'
     flow = OAuth2WebServerFlow(
-        client_id=_google_client_id,
-        client_secret=_google_client_secret,
+        client_id=config.google_client_id,
+        client_secret=config.google_client_secret,
         scope='https://www.googleapis.com/auth/userinfo.email',
-        redirect_uri=_google_redirect_uri
+        redirect_uri=config.google_redirect_uri
     )
     # Redirect the user to auth_uri on your platform.
     auth_uri = flow.step1_get_authorize_url()
@@ -143,10 +140,10 @@ def callback():
     code = request.args.get('code')
     # Pass code provided by authorization server redirection to this function
     flow = OAuth2WebServerFlow(
-        client_id=_google_client_id,
-        client_secret=_google_client_secret,
+        client_id=config.google_client_id,
+        client_secret=config.google_client_secret,
         scope='https://www.googleapis.com/auth/userinfo.email',
-        redirect_uri=_google_redirect_uri
+        redirect_uri=config.google_redirect_uri
     )
     credentials = flow.step2_exchange(code)
     # Supply access token to information request using httplib2
@@ -426,10 +423,8 @@ def catalogAPIEndpoint():
 def main():
     """Serve up a webpage on localhost."""
 
-    ipaddr = os.environ.get('LISTEN_INTERFACE', None)
-    port = os.environ.get('LISTEN_PORT', None)
-    app.secret_key = os.environ.get('DATABASE_PASSWORD', None)
-    app.run(ipaddr, port=port, debug=True)
+    app.secret_key = config.db_password
+    app.run(config.ip_address, port=config.port, debug=True)
 
 
 if __name__ == "__main__":
