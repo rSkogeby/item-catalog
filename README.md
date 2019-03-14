@@ -21,6 +21,7 @@ is added using the Google OAuth2 API.
 - [SQLAlchemy](https://pypi.org/project/SQLAlchemy/)
 - [requests](https://pypi.org/project/requests/)
 - [dotenv](https://pypi.org/project/python-dotenv/)
+- [passlib](https://pypi.org/project/passlib/)
 
 ## Design
 
