@@ -42,15 +42,26 @@ hash, which in turn is stored in the database.
 
 ## Usage
 
-Get a Google Client ID and Secret and download the client_secrets.json file.
-Create an "instance" directory in your item-catalog folder:
+Using pip3 install virtualenv
 
-``` bash
-mkdir instance
+```bash
+pip3 install virtualenv
 ```
 
-In the root directory create a file named .env, add it to your .gitignore
-and fill in the required information:
+Create a virtual environment
+
+```bash
+python3 -m venv nameOfVirtualEnvironment
+```
+
+Source the environment to activate it
+
+```bash
+source nameOfVirtualEnvironment/bin/activate
+```
+
+Go to the root directory of the repository and create a file named .env and fill in the required
+information:
 
 ``` bash
 import os
@@ -60,7 +71,6 @@ GOOGLE_CLIENT_SECRET =
 GOOGLE_REDIRECT_URI = http://mydomain:myport/login/authorized
 LISTEN_INTERFACE = 0.0.0.0
 LISTEN_PORT = 8080
-
 ```
 
 Install required libraries:
@@ -72,7 +82,7 @@ pip3 install -r requirements.txt
 Set privileges to execute the run.py file:
 
 ``` bash
-chmod 700 run.py
+chmod +x run.py
 ```
 
 Launch the application:
@@ -84,7 +94,7 @@ Launch the application:
 Open your favourite browser (except for internet explorer) and go to
 
 ``` bash
-http://localhost:8080
+http://0.0.0.0:8080
 ```
 
 ## License
