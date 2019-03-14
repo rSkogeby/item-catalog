@@ -1,0 +1,14 @@
+{% extends "index.html" %}
+{% block snippet %}
+<div class="col-lg-3">
+    <h1>Delete category</h1>
+    <form action='{{url_for('deleteCategory', categoryid=category.id)}}' method='POST'>
+    <div class="form-group">
+        <label for="deleteprompt">Are you sure you want to delete {{category.name}}?</label><br />
+        <button type="submit" class="btn btn-danger" id="deleteprompt" aria-describedby="deleteHelp">Delete</button><br />
+        <small id="deleteHelp" class="form-text text-muted">Deleted categories cannot be recovered.</small><br />
+    </div>
+    <a href='{{url_for('index')}}'>Cancel</a>
+    </form>
+</div>
+{% endblock %}
