@@ -1,8 +1,0 @@
-<div class="col-lg-3">
-<div class="list-group">
-    {% for latest_item in latest_items %}
-        <a href="{{url_for('showItem', categoryid=latest_item.category_id, itemid=latest_item.id)}}" class="list-group-item">{{latest_item.name}} <em>({{latest_item.category.name}})</em></a>
-    {% endfor %}
-</div>
-</div>
-
