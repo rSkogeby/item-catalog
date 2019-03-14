@@ -1,0 +1,37 @@
+{% extends "index.html" %}
+{% block snippet %}
+<div class="col-lg-3">
+    <div class="list-group">
+        {% for item in items %}
+        {% if categoryid != None and itemid != None and categoryid == item.category_id and itemid == item.id %}
+        <a href="{{url_for('showItem', categoryid=item.category_id, itemid=item.id)}}" class="list-group-item active">{{item.name}}</a>
+        {% else %}
+        <a href="{{url_for('showItem', categoryid=item.category_id, itemid=item.id)}}" class="list-group-item">{{item.name}}</a>
+        {% endif %}
+        {% endfor %}
+        <div class="btn">
+            <a href={{url_for('newItem', categoryid=categoryid)}}>
+            <i class="far fa-plus-square"></i>
+            </a>
+            {% if categoryid != None and itemid != None %}
+            <a href={{url_for('editItem', categoryid=categoryid, itemid=itemid)}}>
+            <i class="fas fa-edit"></i>
+            </a>
+            <a href={{url_for('deleteItem', categoryid=categoryid, itemid=itemid)}}>
+            <i class="far fa-trash-alt"></i>
+            </a>
+            {% endif %}
+        </div>
+        <!-- /.btn -->
+    </div>
+    <!-- /.list-group -->
+</div>
+<!-- /.col-lg-3 -->
+{% if 'item' in request.path %}
+<div class="col-xs-5">
+    {% block item_description %}
+    {% endblock %}
+</div>
+<!-- /.col-lg-3 -->
+{% endif %}
+{% endblock %}
