@@ -94,7 +94,7 @@ Launch the application:
 Open your favourite browser (except for internet explorer) and go to
 
 ``` bash
-http://0.0.0.0:8080
+http://localhost:8080
 ```
 
 ## License
