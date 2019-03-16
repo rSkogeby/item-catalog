@@ -420,6 +420,20 @@ def catalogAPIEndpoint():
     return jsonify(Categories=catalog)
 
 
+@app.route('/category/<int:categoryid>/item.json/')
+def arbitraryItemAPIEndpoint(categoryid):
+    """Return page to display JSON formatted information of arbitrary item."""
+    items = session.query(Item).filter_by(category_id=categoryid).all()
+    if len(items) == 0:
+        response = make_response(
+            json.dumps("This category has no items for display."), 204
+        )
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    item_number = random.randint(0, len(items)-1)
+    return jsonify(Items=items[item_number].serialize)
+
+
 def main():
     """Serve up a webpage on localhost."""
 
