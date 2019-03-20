@@ -2,9 +2,5 @@
 from item_catalog import views
 
 
-def application():
-    views.main()
-
-
 if __name__ == "__main__":
-    app()
+    views.main()
