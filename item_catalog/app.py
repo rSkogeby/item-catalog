@@ -434,7 +434,7 @@ def arbitraryItemAPIEndpoint(categoryid):
     return jsonify(Items=items[item_number].serialize)
 
 
-def main():
+def run():
     """Serve up a webpage on localhost."""
 
     app.secret_key = config.db_password()
@@ -442,4 +442,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run()
