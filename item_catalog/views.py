@@ -21,6 +21,9 @@ from item_catalog.models import Base, Category, Item, User
 import config
 
 app = Flask(__name__)
+app.secret_key = config.db_password()
+app.config['SESSION_TYPE'] = 'filesystem'
+app.debug = True
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
 Base.metadata.bind = engine

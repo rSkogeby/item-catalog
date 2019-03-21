@@ -4,5 +4,4 @@ import config
 
 
 if __name__ == "__main__":
-    app.secret_key = config.db_password()
     app.run()
