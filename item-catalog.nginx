@@ -1,0 +1,9 @@
+server {
+    listen 80;
+    server_name pintfindr www.pintfindr;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/home/ubuntu/item-catalog/item-catalog.sock;
+    }
+}
