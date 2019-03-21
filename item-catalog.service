@@ -1,5 +1,5 @@
 [Unit]
-Description=uWSGI instance to serve item_catalog
+Description=uWSGI instance to serve item-catalog
 After=network.target
 
 [Service]
@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/item-catalog
 Environment="PATH=/home/ubuntu/venv/bin"
-ExecStart=/home/ubuntu/venv/bin/uwsgi --ini item_catalog.ini
+ExecStart=/home/ubuntu/venv/bin/uwsgi --ini item-catalog.ini
 
 [Install]
 WantedBy=multi-user.target
