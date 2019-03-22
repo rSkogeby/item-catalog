@@ -7,6 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from passlib.apps import custom_app_context as pwd_context
+import config
 
 
 class Mixin(object):
@@ -83,6 +84,3 @@ class Item(Base):
             'id': self.id
         }
 
-
-engine = create_engine('sqlite:///itemcatalog.db')
-Base.metadata.create_all(engine)
