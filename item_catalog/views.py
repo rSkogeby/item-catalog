@@ -9,7 +9,7 @@ import json
 import os
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify,\
-    flash, g, make_response
+    flash, g, make_response, SQLAlchemy
 from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
@@ -24,8 +24,9 @@ app = Flask(__name__)
 app.secret_key = config.db_password()
 app.config['SESSION_TYPE'] = 'filesystem'
 app.debug = True
-engine = create_engine('sqlite:///itemcatalog.db',
-                       connect_args={'check_same_thread': False})
+db = SQLAlchemy(app)
+#engine = create_engine(config.db_url(),
+#                       connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
