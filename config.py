@@ -21,6 +21,12 @@ def db_password():
     return verified_input
 
 
+def db_url():
+    user_input = os.environ.get('DATABASE_URL', None)
+    verified_input = user_input
+    return verified_input
+
+
 def google_client_id():
     user_input = os.environ.get('GOOGLE_CLIENT_ID', None)
     verified_input = user_input
